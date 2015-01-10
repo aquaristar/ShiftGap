@@ -106,6 +106,8 @@ STATICFILES_DIRS = (
     root('apps/ui/static'),
 )
 
+STATIC_ROOT = 'staticfiles'
+
 # Template files
 TEMPLATE_DIRS = (
     root('templates'),
