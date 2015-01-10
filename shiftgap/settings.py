@@ -38,9 +38,12 @@ INSTALLED_APPS = (
     # third party
     'djangosecure',
     'debug_toolbar',
+    'timezone_field',
 
     # project apps
     'apps.ui',
+    'apps.organizations',
+    'apps.schedules',
 )
 
 MIDDLEWARE_CLASSES = (
