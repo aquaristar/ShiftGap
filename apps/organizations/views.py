@@ -18,13 +18,13 @@ class OrganizationPermission(object):
 
     def has_object_permission(self, obj):
         allow = False
-        if hasattr(object, 'organization_id'):
+        if hasattr(obj, 'organization_id'):
             up = self._get_user_profile_or_none()
             if up and up.organization_id == obj.organization_id:
                 allow = True
 
         else:
-            #Object is not organization owned so permissions do not apply
+            # Object is not organization owned so permissions do not apply
             allow = True
 
         return allow
@@ -68,6 +68,21 @@ class PostLoginView(LoginRequiredMixin, View):
             except UserProfile.DoesNotExist:
                 return HttpResponseRedirect(reverse('account_profile'))
         return HttpResponseRedirect(reverse('login'))
+
+
+class UserProfileRequiredMixin(LoginRequiredMixin):
+
+    def dispatch(self, request, *args, **kwargs):
+        sup = super().dispatch(request, *args, **kwargs)
+        if request.user.is_authenticated():
+            try:
+                request.user.userprofile
+            except UserProfile.DoesNotExist:
+                return HttpResponseRedirect(reverse('account_profile'))
+
+        return sup
+
+# ###### Views
 
 
 class AccountProfileView(LoginRequiredMixin, FormView):
