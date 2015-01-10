@@ -1,0 +1,29 @@
+machine:
+  timezone:
+    Canada/Mountain
+
+  python:
+    version:
+      3.4.2
+
+  environment:
+    DATABASE_URL: postgres://ubuntu:@127.0.0.1/circle_test
+
+dependencies:
+  override:
+    - pip install -r requirements.txt
+
+test:
+  override:
+    - python manage.py test
+
+deployment:
+  staging:
+    branch: master
+    commands:
+      - heroku maintenance:on --app shiftgap1
+      - git push git@heroku.com:shiftgap1.git $CIRCLE_SHA1:master
+      - heroku config:set BUILD_HASH=`git rev-parse --short HEAD` --app shiftgap1
+      - heroku run python manage.py makemigrations --app shiftgap1
+      - heroku run python manage.py migrate --app shiftgap1
+      - heroku maintenance:off --app shiftgap1
