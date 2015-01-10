@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, Http404
-from django.views.generic import View, FormView
+from django.views.generic import View, FormView, UpdateView, CreateView
 
 from braces.views import LoginRequiredMixin
 
@@ -85,38 +85,31 @@ class UserProfileRequiredMixin(LoginRequiredMixin):
 # ###### Views
 
 
-class AccountProfileView(LoginRequiredMixin, FormView):
+class AccountProfileBaseViewMixin(object):
     template_name = 'organizations/organization_profile.html'
     form_class = OrganizationSetupForm
 
-    def get_initial(self):
-        initial = super().get_initial()
-        initial['user'] = self.request.user
-
-    def form_valid(self, form):
-        user = self.request.user
-        try:
-            organization = user.userprofile.organization
-            organization.name = form.cleaned_data['name']
-            organization.default_tz = form.cleaned_data['default_tz']
-            organization.save()
-        except Organization.DoesNotExist:
-            organization = Organization()
-            organization.name = form.cleaned_data['name']
-            organization.default_tz = form.cleaned_data['default_tz']
-            organization.save()
-
-        try:
-            up = user.userprofile
-        except UserProfile.DoesNotExist:
-            up = UserProfile()
-            up.user = user
-
-        up.organization = organization
-        up.timezone = form.cleaned_data['default_tz']
-        up.save()
-
-        return super(AccountProfileView, self).form_valid(form)
-
     def get_success_url(self):
         return reverse('home')
+
+
+class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, CreateView):
+
+    def get(self, request, *args, **kwargs):
+        # if the user already has an organization in their user profile, we want them to update the existing record
+        try:
+            self.request.user.userprofile
+            return HttpResponseRedirect(reverse('account_profile_update'))
+        except UserProfile.DoesNotExist:
+            return super(AccountProfileView, self).get(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        super(AccountProfileView, self).form_valid(form)
+        UserProfile.objects.create(user=self.request.user, organization=self.object, timezonecon=self.object.default_tz)
+        return self.get_success_url()
+
+
+class AccountProfileUpdateView(LoginRequiredMixin, AccountProfileBaseViewMixin, UpdateView):
+
+    def get_object(self, queryset=None):
+        return self.request.user.userprofile.organization

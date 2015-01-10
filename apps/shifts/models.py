@@ -15,3 +15,6 @@ class Shift(OrganizationOwned):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     user = models.ForeignKey('auth.User')
+
+    def __str__(self):
+        return self.user.username + ' from ' + str(self.start_time) + ' to ' + str(self.end_time)

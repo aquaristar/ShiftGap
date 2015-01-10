@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Schedule',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=64)),
                 ('location', models.ForeignKey(to='organizations.Location')),
                 ('organization', models.ForeignKey(to='organizations.Organization')),
@@ -29,11 +29,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Shift',
             fields=[
-                ('id', models.AutoField(serialize=False, primary_key=True, verbose_name='ID', auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('start_time', models.DateTimeField()),
                 ('end_time', models.DateTimeField()),
                 ('organization', models.ForeignKey(to='organizations.Organization')),
-                ('schedule', models.ForeignKey(to='schedules.Schedule')),
+                ('schedule', models.ForeignKey(to='shifts.Schedule')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={

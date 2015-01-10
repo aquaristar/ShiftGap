@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
-from apps.organizations.views import AccountProfileView
+from apps.organizations.views import AccountProfileView, AccountProfileUpdateView
 
 urlpatterns = patterns('',
 
@@ -17,10 +17,12 @@ urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name='welcome.html'), name='home'),
 
     # include your apps urls files below
+    url(r'^shifts/', include('apps.shifts.urls', namespace='shifts')),
 
     # django all auth
     url(r'^login/$', RedirectView.as_view(url='/accounts/login/'),
         name='login'),
+    url(r'^profile/update/', AccountProfileUpdateView.as_view(), name='account_profile_update'),
     url(r'^profile/$', RedirectView.as_view(url='/accounts/profile/')),
     url(r'^logout/$', 'django.contrib.auth.views.logout',
         {'next_page': '/login/'}, name='logout'),

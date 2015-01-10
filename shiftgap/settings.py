@@ -54,7 +54,7 @@ INSTALLED_APPS = (
     # project apps
     'apps.ui',
     'apps.organizations',
-    'apps.schedules',
+    'apps.shifts',
 )
 
 MIDDLEWARE_CLASSES = (
