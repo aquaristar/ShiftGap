@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% load staticfiles %}
+{% load static from staticfiles %}
 
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -12,14 +12,14 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.min.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap.css" %}">
     <style>
         body {
             padding-top: 50px;
             padding-bottom: 20px;
         }
     </style>
-    <link rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap-theme.min.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap-theme.css" %}">
     <link rel="stylesheet" href="{% static "main.css" %}">
     <link rel="shortcut icon" href="{% static "favicon.ico" %}">
 
