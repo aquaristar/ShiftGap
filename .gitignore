@@ -45,7 +45,5 @@ docs/_build/
 *.env
 celerybeat-schedule.db
 
-bower_components
 node_modules/
-bower_components/
 .DS_Store
