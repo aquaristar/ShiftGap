@@ -151,6 +151,11 @@ AUTHENTICATION_BACKENDS = (
 
 )
 
+LOGIN_URL = '/login/'
+
+LOGOUT_URL = '/logout/'
+
+
 SOCIALACCOUNT_PROVIDERS = {
     'facebook':
         {

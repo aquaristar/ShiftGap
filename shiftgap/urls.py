@@ -6,22 +6,25 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 from django.contrib import admin
 
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
 urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', TemplateView.as_view(template_name='welcome.html'), name='welcome'),
+    url(r'^$', TemplateView.as_view(template_name='welcome.html'), name='home'),
 
     # include your apps urls files below
 
     # django all auth
+    url(r'^login/$', RedirectView.as_view(url='/accounts/login/'),
+        name='login'),
+    url(r'^logout/$', 'django.contrib.auth.views.logout',
+        {'next_page': '/login/'}, name='logout'),
     (r'^accounts/', include('allauth.urls')),
 
     # Misc non django
     url(r'^404\.html$', TemplateView.as_view(template_name='404.html'), name='404'),
-    url(r'^jqueryui\.html$', TemplateView.as_view(template_name='jquery-ui.html'), name='jqueryui'),
     url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     url(r'^humans\.txt$', TemplateView.as_view(template_name='humans.txt', content_type='text/plain')),
     url(r'^crossdomain\.xml$', TemplateView.as_view(template_name='crossdomain.xml', content_type='text/xml')),
