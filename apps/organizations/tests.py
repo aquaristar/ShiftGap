@@ -1,3 +1,11 @@
 from django.test import TestCase
 
-# Create your tests here.
+
+class TestOrganizationObjectPermissions(TestCase):
+
+    def test_new_object_permissions_valid(self):
+        pass
+
+    def test_new_user_forces_redirect(self):
+        # test at least two views (random url if possible)
+        pass

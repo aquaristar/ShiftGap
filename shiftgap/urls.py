@@ -9,6 +9,8 @@ from django.contrib import admin
 from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
+from apps.organizations.views import AccountProfileView
+
 urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
@@ -21,7 +23,8 @@ urlpatterns = patterns('',
         name='login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout',
         {'next_page': '/login/'}, name='logout'),
-    (r'^accounts/', include('allauth.urls')),
+    url(r'^accounts/profile/', AccountProfileView.as_view(), name='account_profile'),
+    url(r'^accounts/', include('allauth.urls')),
 
     # Misc non django
     url(r'^404\.html$', TemplateView.as_view(template_name='404.html'), name='404'),
