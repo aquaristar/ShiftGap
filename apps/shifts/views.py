@@ -22,3 +22,11 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         return OrganizationPermission(self.request).filter_object_permissions(qs)
+
+
+class ShiftCreateView(UserProfileRequiredMixin, ShiftBaseMixin, CreateView):
+    pass
+
+
+class ShiftUpdateView(OrganizationOwnedRequired, ShiftBaseMixin, UpdateView):
+    pass

@@ -24,5 +24,5 @@ class ActivateUsersTimezoneFromProfileMiddleware(object):
                 timezone.activate(tz)
             else:
                 timezone.deactivate()
-        except UserProfile.DoesNotExist:
+        except Exception:
             timezone.deactivate()
