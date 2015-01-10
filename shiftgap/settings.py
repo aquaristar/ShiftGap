@@ -33,7 +33,18 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.formtools',
+
+
+    # all auth
     'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # ... include the providers you want to enable:
+    # 'allauth.socialaccount.providers.facebook',
+    # 'allauth.socialaccount.providers.google',
+    # 'allauth.socialaccount.providers.twitter',
+    # 'allauth.socialaccount.providers.github',
 
     # third party
     'djangosecure',
@@ -76,7 +87,7 @@ if PRODUCTION:
                 'sslrootcert': 'procedurized/rds-ssl-ca-cert.pem'
             }
         },
-    }
+        }
 else:
     import dj_database_url
     DATABASES = {
@@ -115,6 +126,41 @@ STATIC_ROOT = 'staticfiles'
 TEMPLATE_DIRS = (
     root('templates'),
 )
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+
+    # allauth specific context processors
+    "allauth.account.context_processors.account",
+    "allauth.socialaccount.context_processors.socialaccount",
+)
+
+AUTHENTICATION_BACKENDS = (
+
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+
+)
+
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook':
+        {
+            'SCOPE': ['email', 'publish_stream'],
+            'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+            'METHOD': 'oauth2',
+            'VERIFIED_EMAIL': False,
+            'VERSION': 'v2.2'
+        }
+}
 
 #  ################ EMAIL SETTINGS #######################
 EMAIL_BACKEND = environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')

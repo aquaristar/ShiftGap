@@ -16,6 +16,9 @@ urlpatterns = patterns('',
 
     # include your apps urls files below
 
+    # django all auth
+    (r'^accounts/', include('allauth.urls')),
+
     # Misc non django
     url(r'^404\.html$', TemplateView.as_view(template_name='404.html'), name='404'),
     url(r'^jqueryui\.html$', TemplateView.as_view(template_name='jquery-ui.html'), name='jqueryui'),
