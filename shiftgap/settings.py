@@ -68,6 +68,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
 
     'django.contrib.admindocs.middleware.XViewMiddleware',  # for admindocs
+    'apps.middleware.timezone.set_tz.ActivateUsersTimezoneFromProfileMiddleware',
 )
 
 PRODUCTION = True if environ.get('PRODUCTION', 'false').lower() == 'true' else False
@@ -135,6 +136,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.core.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
+
+    # project specific
+    "apps.ui.context_processors.process_ui_views",
 
     # allauth specific context processors
     "allauth.account.context_processors.account",
