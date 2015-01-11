@@ -68,7 +68,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
 
     'django.contrib.admindocs.middleware.XViewMiddleware',  # for admindocs
-    'apps.middleware.timezone.set_tz.ActivateUsersTimezoneFromProfileMiddleware',
+    'apps.middleware.timezone.set_tz.SetUsersTimezoneMiddleware',
+    'apps.middleware.timezone.set_tz.TimezoneMiddleware',
 )
 
 PRODUCTION = True if environ.get('PRODUCTION', 'false').lower() == 'true' else False

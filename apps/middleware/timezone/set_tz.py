@@ -2,6 +2,7 @@ import pytz
 
 from django.utils import timezone
 
+
 from apps.ui.models import UserProfile
 
 
@@ -13,16 +14,31 @@ class TimezoneMiddleware(object):
             timezone.activate(pytz.timezone(tzname))
         else:
             timezone.deactivate()
+        return None
 
 
-class ActivateUsersTimezoneFromProfileMiddleware(object):
+class SetUsersTimezoneMiddleware(object):
 
     def process_request(self, request):
         try:
-            tz = request.user.userprofile.timezone
-            if tz:
-                timezone.activate(tz)
-            else:
-                timezone.deactivate()
+            request.session['django_timezone'] = request.user.userprofile.timezone.zone
         except Exception:
-            timezone.deactivate()
+            pass
+
+
+# class ActivateUsersTimezoneFromProfileMiddleware(object):
+#
+#     def process_request(self, request):
+#         import pdb
+#         # pdb.set_trace()
+#         try:
+#             tz = request.user.userprofile.timezone
+#             # request.session['django_timezone']
+#             if tz:
+#                 pdb.set_trace()
+#                 timezone.activate(tz.zone)
+#
+#                 # pdb.set_trace()
+#         except AttributeError:
+#             timezone.deactivate()
+#         return None

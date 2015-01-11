@@ -1,6 +1,17 @@
 {% extends "__base.html" %}
 {% load i18n %}
+{% load tz %}
 
 {% block content %}
     <h1>{% trans "Welcome to ShiftGap"%}</h1><small>{% trans "Intelligent scheduling for everyone." %}</small>
+    <hr>
+    <p>The current time is {{ time |utc}}</p>
+    {% localtime %}
+    <p>Your time is {{ time }}</p>
+    {% endlocaltime %}
+    <p>Your time should be {{ time|timezone:"Canada/Mountain" }}</p>
+    <p>Time is aware? {{ naive }}</p>
+    <hr>
+    <p>Your tz as django_timezone: {{ yourtz }}</p>
+
 {% endblock content %}
