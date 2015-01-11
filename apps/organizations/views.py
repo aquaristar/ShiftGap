@@ -105,7 +105,7 @@ class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, Create
 
     def form_valid(self, form):
         super(AccountProfileView, self).form_valid(form)
-        UserProfile.objects.create(user=self.request.user, organization=self.object, timezonecon=self.object.default_tz)
+        UserProfile.objects.create(user=self.request.user, organization=self.object, timezone=self.object.default_tz)
         return self.get_success_url()
 
 
