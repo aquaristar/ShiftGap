@@ -2,8 +2,6 @@ from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse
 
-from braces.views import LoginRequiredMixin
-
 from apps.organizations.views import OrganizationOwnedRequired, UserProfileRequiredMixin, OrganizationPermission
 from .models import Shift, Schedule
 from .forms import ShiftForm
@@ -40,6 +38,7 @@ class ShiftListCalendarView(ShiftListView):
         events = []
         for shift in context['object_list']:
             events.append({
+                # Fullcalendar.io uses 'title', 'start' and 'end'
                 'title': str(shift.user),
                 'start': str(shift.start_time.astimezone(self.request.user.userprofile.timezone)),
                 'end': str(shift.end_time.astimezone(self.request.user.userprofile.timezone))
@@ -49,18 +48,7 @@ class ShiftListCalendarView(ShiftListView):
 
 
 class ShiftCreateView(UserProfileRequiredMixin, ShiftBaseMixin, CreateView):
-
-    def form_valid(self, form):
-        """
-        If the form is valid, save the associated model.
-        """
-        # self.object = form.save(commit=False)
-        # self.object.organization = self.request.user.userprofile.organization
-        # self.object.save()
-        return super(ShiftCreateView, self).form_valid(form)
-
-    def form_invalid(self, form):
-        return super(ShiftCreateView, self).form_invalid(form)
+    pass
 
 
 class ShiftUpdateView(OrganizationOwnedRequired, ShiftBaseMixin, UpdateView):

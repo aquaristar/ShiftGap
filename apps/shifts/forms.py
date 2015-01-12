@@ -16,7 +16,6 @@ class ShiftForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super(ShiftForm, self).__init__(*args, **kwargs)
-        # FIXME organization could be changed from HTML form by malicious user
         self.fields['organization'].initial = self.request.user.userprofile.organization
         self.fields['user'].queryset = User.objects.filter(userprofile__organization=self.request.user.userprofile.organization)
         self.fields['user'].initial = self.request.user
@@ -26,10 +25,12 @@ class ShiftForm(forms.ModelForm):
         self.fields['start_time'].initial = datetime.datetime.now()
 
     def save(self, commit=True):
-        import pdb
-        pdb.set_trace()
-        self.organization = self.request.user.userprofile.organization
-        return super(ShiftForm, self).save(commit=True)
+        instance = super(ShiftForm, self).save(commit=False)
+        # if the user modifies the hidden field in the HTML
+        instance.organization = self.request.user.userprofile.organization
+        if commit:
+            instance.save()
+        return instance
 
     class Meta:
         model = Shift
