@@ -6,7 +6,8 @@ from django.views.generic import View, FormView, UpdateView, CreateView
 from braces.views import LoginRequiredMixin
 
 from apps.ui.models import UserProfile
-from .models import Organization
+from apps.shifts.models import Schedule
+from .models import Organization, Location
 from .forms import OrganizationSetupForm
 
 
@@ -106,6 +107,9 @@ class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, Create
     def form_valid(self, form):
         super(AccountProfileView, self).form_valid(form)
         UserProfile.objects.create(user=self.request.user, organization=self.object, timezone=self.object.default_tz)
+        # FIXME move this to another user initiated view
+        default_location = Location.objects.create(name='Default', organization=self.object, timezone=self.object.default_tz)
+        Schedule.objects.create(name='Default', organization=self.object, location=default_location)
         return self.get_success_url()
 
 

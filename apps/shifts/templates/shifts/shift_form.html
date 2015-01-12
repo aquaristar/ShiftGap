@@ -2,10 +2,43 @@
 
 {% block content %}
 
-    <form action="." method="post">{% csrf_token %}
-        {{ form.as_p }}
+    <div class="row">
 
-    <input type="submit" name="Submit">
-    </form>
+
+            <hr>
+        <div class="form-group">
+            <form action="." method="post">{% csrf_token %}
+                {{ form.errors }}
+                <br />
+                {{ form.start_time.label_tag }}
+                <input type="text" id="id_start_time" name="start_time" data-date-format="YYYY-MM-DD hh:mm:00">
+                {{ form.end_time.label_tag }}
+                <input type="text" id="id_end_time" name="end_time" data-date-format="YYYY-MM-DD hh:mm:00">
+                {{ form.schedule.label_tag }}
+                {{ form.schedule }}
+                {{ form.user.label_tag }}
+                {{ form.user }}
+
+                <input type="submit" name="Submit">
+            </form>
+
+        </div>
+
+
+    </div>
+
 
 {% endblock %}
+
+{% block tail %}
+
+<script>
+$(document).ready(
+        $(function () {
+            $('#id_start_time').datetimepicker();
+            $('#id_end_time').datetimepicker();
+        })
+)
+</script>
+
+{% endblock tail %}

@@ -22,6 +22,9 @@ class Location(OrganizationOwned):
     name = models.CharField(max_length=64)
     timezone = TimeZoneField()
 
+    class Meta:
+        unique_together = (('name', 'organization'),)
+
 
 class HasLocation(models.Model):
     location = models.ForeignKey(Location)

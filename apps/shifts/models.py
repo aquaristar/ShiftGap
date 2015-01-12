@@ -9,6 +9,9 @@ class Schedule(OrganizationOwned, HasLocation):
     def __str__(self):
         return self.name
 
+    class Meta:
+        unique_together = (('location', 'name'),)
+
 
 class Shift(OrganizationOwned):
     schedule = models.ForeignKey(Schedule)

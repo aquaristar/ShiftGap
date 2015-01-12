@@ -24,6 +24,7 @@ class SetUsersTimezoneMiddleware(object):
             request.session['django_timezone'] = request.user.userprofile.timezone.zone
         except Exception:
             pass
+        return None
 
 
 # class ActivateUsersTimezoneFromProfileMiddleware(object):

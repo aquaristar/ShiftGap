@@ -1,13 +1,18 @@
 {% extends "__base.html" %}
+{% load tz %}
+{% localtime %}
 
 {% block content %}
     <div class="row">
+    <hr>
+
 
     {% for object in object_list %}
-    <p>{{ object }}</p>
+    <p><strong>{{ object.user }}</strong> || from: --- {{ object.start_time }} >>> to: {{ object.end_time }} || schedule {{ object.schedule }}</p>
     {% endfor %}
 
 
     </div>
 
 {% endblock content%}
+{% endlocaltime %}
