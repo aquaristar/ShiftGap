@@ -1,0 +1,33 @@
+{% extends "__base.html" %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.css' %}">
+
+
+{% endblock head %}
+
+{% block content %}
+
+    <div id="calendar"></div>
+
+{% endblock content %}
+
+{% block tail %}
+    <script>
+        var events = {{ events|safe }};
+        $(document).ready(function () {
+            $('#calendar').fullCalendar({
+                dayClick: function () {
+                    alert('a day has been clicked!');
+                },
+                events: events
+            });
+        });
+
+
+        window.events = events;
+
+    </script>
+
+{% endblock tail%}

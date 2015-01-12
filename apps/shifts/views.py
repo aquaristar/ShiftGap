@@ -31,13 +31,32 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
         return OrganizationPermission(self.request).filter_object_permissions(qs)
 
 
+class ShiftListCalendarView(ShiftListView):
+    template_name = 'shifts/shift_calendar.html'
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation to first get a context
+        context = super(ShiftListCalendarView, self).get_context_data(**kwargs)
+        events = []
+        for shift in context['object_list']:
+            events.append({
+                'title': str(shift.user),
+                'start': str(shift.start_time.astimezone(self.request.user.userprofile.timezone)),
+                'end': str(shift.end_time.astimezone(self.request.user.userprofile.timezone))
+            })
+        context['events'] = events
+        return context
+
+
 class ShiftCreateView(UserProfileRequiredMixin, ShiftBaseMixin, CreateView):
 
     def form_valid(self, form):
         """
         If the form is valid, save the associated model.
         """
-        self.object = form.save()
+        # self.object = form.save(commit=False)
+        # self.object.organization = self.request.user.userprofile.organization
+        # self.object.save()
         return super(ShiftCreateView, self).form_valid(form)
 
     def form_invalid(self, form):
