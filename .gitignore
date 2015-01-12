@@ -6,7 +6,6 @@ venv
 # Distribution / packaging
 .Python
 env/
-build/
 develop-eggs/
 eggs/
 lib/
