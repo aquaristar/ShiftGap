@@ -117,3 +117,8 @@ class AccountProfileUpdateView(LoginRequiredMixin, AccountProfileBaseViewMixin, 
 
     def get_object(self, queryset=None):
         return self.request.user.userprofile.organization
+
+    def form_valid(self, form):
+        super(AccountProfileUpdateView, self).form_valid(form)
+        self.request.user.userprofile.timezone = self.object.default_tz
+        return self.get_success_url()
