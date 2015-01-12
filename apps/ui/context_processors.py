@@ -1,5 +1,4 @@
 from os import environ
-import datetime
 import arrow
 
 from django.utils import timezone

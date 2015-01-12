@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
     <div class="container">
         <div class="navbar-header">
@@ -10,6 +11,10 @@
             <a class="navbar-brand" href="{% url 'home' %}">enstrategic</a>
         </div>
         <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="{% url 'shifts:shift_list' %}">{% trans "Shifts" %}</a></li>
+                <li><a href="{% url 'shifts:shift_create' %}">{% trans "New Shift" %}</a></li>
+            </ul>
             <form class="navbar-form navbar-right" role="form" action="{% url 'account_login' %}" method="POST">
                 {% csrf_token %}
                 <div class="form-group">
