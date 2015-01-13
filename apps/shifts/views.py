@@ -2,9 +2,14 @@ from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse
 
+from rest_framework.views import APIView
+from rest_framework.generics import ListCreateAPIView
+from rest_framework import permissions
+
 from apps.organizations.views import OrganizationOwnedRequired, UserProfileRequiredMixin, OrganizationPermission
 from .models import Shift, Schedule
 from .forms import ShiftForm
+from .serializers import ShiftSerializer
 
 
 class ShiftBaseMixin(object):
@@ -53,3 +58,17 @@ class ShiftCreateView(UserProfileRequiredMixin, ShiftBaseMixin, CreateView):
 
 class ShiftUpdateView(OrganizationOwnedRequired, ShiftBaseMixin, UpdateView):
     pass
+
+
+class BelongsToOrganization(permissions.BasePermission):
+    # FIXME review, currently non-functional
+    def has_object_permission(self, request, view, obj):
+        return obj.organization == request.user.userprofile.organization
+
+
+class ShiftListCreateUpdateAPIView(ListCreateAPIView):
+    serializer_class = ShiftSerializer
+    # permission_classes = (BelongsToOrganization, )
+
+    def get_queryset(self):
+        return Shift.objects.filter(organization=self.request.user.userprofile.organization)

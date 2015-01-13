@@ -50,6 +50,7 @@ INSTALLED_APPS = (
     'djangosecure',
     'debug_toolbar',
     'timezone_field',
+    'rest_framework',
 
     # project apps
     'apps.ui',
