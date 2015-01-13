@@ -4,9 +4,13 @@ from .models import Shift
 
 
 class ShiftSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='user')
+    start = serializers.DateTimeField(source='start_time')
+    end = serializers.DateTimeField(source='end_time')
 
     class Meta:
         model = Shift
+
 
     def to_representation(self, instance):
         instance.start_time = instance.start_time.astimezone(self.context['request'].user.userprofile.timezone)

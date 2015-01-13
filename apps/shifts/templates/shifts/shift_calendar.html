@@ -21,7 +21,15 @@
                 dayClick: function () {
                     alert('a day has been clicked!');
                 },
-                events: events,
+                eventSources: [
+                    {
+                        url: '{% url 'shifts:shift_list_create_api' %}?format=json',
+                        type: 'GET',
+                        error: function () {
+                            alert('there was an error while fetching events');
+                        }
+                    }
+                ],
                 displayEventEnd: true,
                 header: {
                     left: 'title',
@@ -30,10 +38,6 @@
                 }
             });
         });
-
-
-        window.events = events;
-
     </script>
 
 {% endblock tail%}
