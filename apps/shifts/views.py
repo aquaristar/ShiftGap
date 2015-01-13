@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse
 
+import arrow
 from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import permissions
@@ -74,7 +75,6 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
         start = self.request.query_params.get('start', None)
         end = self.request.query_params.get('end', None)
         if start and end:
-            import arrow
             start = arrow.get(start).floor('hour')
             end = arrow.get(end).ceil('hour')
 
