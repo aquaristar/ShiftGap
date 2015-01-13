@@ -71,4 +71,16 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
     # permission_classes = (BelongsToOrganization, )
 
     def get_queryset(self):
-        return Shift.objects.filter(organization=self.request.user.userprofile.organization)
+        start = self.request.query_params.get('start', None)
+        end = self.request.query_params.get('end', None)
+        if start and end:
+            import arrow
+            start = arrow.get(start).floor('hour')
+            end = arrow.get(end).ceil('hour')
+
+            # FIXME account for timezone's in dates, floor and ceiling not enough
+
+            return Shift.objects.filter(organization=self.request.user.userprofile.organization,
+                                        start_time__gte=start.datetime, end_time__lte=end.datetime)
+        else:
+            return Shift.objects.filter(organization=self.request.user.userprofile.organization)
