@@ -25,6 +25,11 @@
                     {
                         url: '{% url 'shifts:shift_list_create_api' %}?format=json',
                         type: 'GET',
+                        data: {
+                            custom_param1: function () {
+                                return 'hello'; // this should really be something to help us filter
+                            }
+                        },
                         error: function () {
                             alert('there was an error while fetching events');
                         }
