@@ -4,6 +4,7 @@ MAINTAINER Michael MacKinnon <mike@eth0.ca>
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y python3-setuptools
 RUN easy_install3 pip
+RUN apt-get install -y libpq-dev python3-dev
 ADD . /app
 RUN cd /app ; pip install -r requirements.txt
 EXPOSE 5000
