@@ -9,6 +9,7 @@ ADD . /app
 RUN cd /app ; pip install -r requirements.txt
 EXPOSE 5000
 WORKDIR /app
+CMD ["python3", "manage.py", "migrate", "--noinput"]
 # For now we serve static assets over our WSGI server so we must collect static assets
 CMD ["python3", "manage.py", "collectstatic", "--noinput"]
 CMD ["waitress-serve", "--port=5000", "shiftgap.wsgi:application"]
