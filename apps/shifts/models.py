@@ -1,7 +1,5 @@
 from django.db import models
 
-import arrow
-
 from apps.organizations.models import OrganizationOwned, HasLocation
 
 
@@ -13,6 +11,12 @@ class Schedule(OrganizationOwned, HasLocation):
 
     class Meta:
         unique_together = (('location', 'name'),)
+
+
+class ShiftQuerySetManager(models.Manager):
+
+    def all(self):
+        return self.all()
 
 
 class Shift(OrganizationOwned):

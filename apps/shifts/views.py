@@ -84,3 +84,9 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
                                         start_time__gte=start.datetime, end_time__lte=end.datetime)
         else:
             return Shift.objects.filter(organization=self.request.user.userprofile.organization)
+
+    def update(self):
+        pass
+
+    def create(self, request, *args, **kwargs):
+        pass

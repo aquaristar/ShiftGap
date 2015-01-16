@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static from staticfiles %}
+{% load i18n %}
 
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
@@ -8,7 +9,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% trans "Welcome to ShiftGap" %}</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -19,7 +21,8 @@
             padding-bottom: 20px;
         }
     </style>
-    <link rel="stylesheet" href="{% static "bower_components/bootstrap/dist/css/bootstrap-theme.css" %}">
+<link href="{% static "theme/ionicons.min.css" %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "theme/theme.css" %}">
     <link rel="stylesheet" href="{% static "main.css" %}">
     <link rel="shortcut icon" href="{% static "favicon.ico" %}">
     <link rel="stylesheet" href="{% static "bower_components/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css" %}">
@@ -62,9 +65,9 @@
     {% endblock content %}
 </div>
 
-<div class="container">
+
     {% include "_footer.html" %}
-</div>
+
 
 
 <!-- /container -->
@@ -75,6 +78,8 @@
 
 <script src="{% static "bower_components/eonasdan-bootstrap-datetimepicker/build/js/bootstrap-datetimepicker.min.js" %}"></script>
 <script src="{% static "bower_components/fullcalendar/dist/fullcalendar.min.js" %}"></script>
+
+<script src="{% static "bower_components/retina.js/dist/retina.min.js" %}"></script>
 
 <script src="{% static "main.js" %}"></script>
 
