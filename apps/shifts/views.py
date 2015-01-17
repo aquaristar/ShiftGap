@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 import arrow
 from rest_framework.views import APIView
@@ -8,6 +9,7 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework import permissions
 
 from apps.organizations.views import OrganizationOwnedRequired, UserProfileRequiredMixin, OrganizationPermission
+from apps.ui.models import UserProfile
 from .models import Shift, Schedule
 from .forms import ShiftForm
 from .serializers import ShiftSerializer
@@ -50,6 +52,16 @@ class ShiftListCalendarView(ShiftListView):
                 'end': str(shift.end_time.astimezone(self.request.user.userprofile.timezone))
             })
         context['events'] = events
+        ups = UserProfile.objects.filter(organization=self.request.user.userprofile.organization)
+        employees = []
+        for user in ups:
+            employees.append({
+                'name': user.user.username,
+                'id': user.user.pk
+            })
+        context['employees'] = employees
+        context['default_schedule'] = Schedule.objects.get(organization=self.request.user.userprofile.organization,
+                                                           name='Default').pk
         return context
 
 
@@ -85,8 +97,8 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
         else:
             return Shift.objects.filter(organization=self.request.user.userprofile.organization)
 
-    def update(self):
-        pass
-
-    def create(self, request, *args, **kwargs):
-        pass
+    # def update(self):
+    #     pass
+    #
+    # def create(self, request, *args, **kwargs):
+    #     pass

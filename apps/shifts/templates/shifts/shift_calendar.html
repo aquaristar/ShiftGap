@@ -1,5 +1,6 @@
 {% extends "__base.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.css' %}">
@@ -11,15 +12,82 @@
 
     <div id="calendar"></div>
 
+    <hr>
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#shiftDetailModal">
+        Shift Detail
+    </button>
+
+    <!-- Shift Detail Modal -->
+    <div class="modal fade" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="shiftDetailModalLabel">{% trans "Shift Details" %}</h4>
+                </div>
+                <div id="shiftDetailModalContent" class="modal-body">
+                    Content here.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" id="saveShiftDetail" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Create Modal -->
+    <div class="modal fade" id="quickCreateModal" tabindex="-1" role="dialog" aria-labelledby="quickCreateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="shiftDetailModalLabel">{% trans "Shift Details" %}</h4>
+                </div>
+                <div id="quickCreateModalContent" class="modal-body">
+                    <label for="timeText">{% trans "Time Text: " %}</label>
+                    <input type="text" id="timeText">
+                    <hr>
+                    <input id="quickCreateStartTime" type="datetime" name="start">
+                    <input id="quickCreateEndTime" type="datetime" name="end">
+                    <input type="text" name="employee">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
+                    <button type="button" id="saveQuickShift" class="btn btn-primary">{% trans "Save" %}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock content %}
 
 {% block tail %}
     <script>
         var events = {{ events|safe }};
+        var employees = {{ employees|safe }};
+        var default_schedule = {{ default_schedule|safe }};
+        var dayCreate = null;
         $(document).ready(function () {
+
+            var employeeSelect = $('<select id="employeeSelect" />');
+            for (var val in employees) {
+                $('<option />', {value: employees[val].id, text: employees[val].name}).appendTo(employeeSelect);
+            }
+            employeeSelect.appendTo('#quickCreateModalContent');
+
             $('#calendar').fullCalendar({
-                dayClick: function () {
-                    alert('a day has been clicked!');
+                dayClick: function (date, jsEvent, view) {
+                    $('#quickCreateModal').modal('show');
+                    console.log(date);
+                    $('#quickCreateModalContent').append("<p>Creating a new shift for " + date._d + ".</p>")
+                    dayCreate = date;
+                },
+                eventClick: function (calEvent, jsEvent, view) {
+                    $('#shiftDetailModal').modal('show');
+                    $('#shiftDetailModalContent').append("<p>" + calEvent.title + calEvent.start_time + "</p>");
+                    console.log(calEvent, jsEvent, view);
                 },
                 eventSources: [
                     {
@@ -42,6 +110,42 @@
                     right: 'today basicWeek prev, next'
                 }
             });
+            $('#saveQuickShift').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'shifts:shift_list_create_api' %}",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        schedule: default_schedule,
+                        start_time: $('#quickCreateStartTime').val(),
+                        end_time: $('#quickCreateEndTime').val(),
+                        user: $('#employeeSelect').val()
+                    },
+                    success: function () {
+                        // display something to the user
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    dataType: 'JSON'
+                }).fail(function () {
+                    alert('Shift creation failed!');
+                });
+                $('#quickCreateModal').modal('hide');
+            });
+            $('#saveShiftDetail').click(function () {
+                // POST the details
+            });
+            $('#timeText').keydown(function (e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                    // convert yo magic
+                }
+            });
+        });
+        $('#shiftDetailModal').on('hide.bs.modal', function (e) {
+            $('.modal-body').empty();
+        });
+        $('#quickCreateModal').on('hide.bs.modal', function (e) {
+            $('.modal-body').empty();
         });
     </script>
 
