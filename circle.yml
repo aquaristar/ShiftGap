@@ -21,9 +21,9 @@ deployment:
   staging:
     branch: master
     commands:
-      - heroku maintenance:on --app shiftgap1
-      - git push git@heroku.com:shiftgap1.git $CIRCLE_SHA1:master
-      - heroku config:set BUILD_HASH=`git rev-parse --short HEAD` --app shiftgap1
-      - heroku run python manage.py makemigrations --app shiftgap1
-      - heroku run python manage.py migrate --app shiftgap1
-      - heroku maintenance:off --app shiftgap1
+      - heroku maintenance:on --app shiftgap
+      - git push git@heroku.com:shiftgap.git $CIRCLE_SHA1:master
+      - heroku config:set BUILD_HASH=`git rev-parse --short HEAD` --app shiftgap
+      - heroku run python manage.py makemigrations --app shiftgap
+      - heroku run python manage.py migrate --app shiftgap
+      - heroku maintenance:off --app shiftgap
