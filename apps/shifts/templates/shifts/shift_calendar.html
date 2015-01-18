@@ -12,11 +12,6 @@
 
     <div id="calendar"></div>
 
-    <hr>
-    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#shiftDetailModal">
-        Shift Detail
-    </button>
-
     <!-- Shift Detail Modal -->
     <div class="modal fade" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -45,13 +40,14 @@
                     <h4 class="modal-title" id="shiftDetailModalLabel">{% trans "Shift Details" %}</h4>
                 </div>
                 <div id="quickCreateModalContent" class="modal-body">
-                    <label for="timeText">{% trans "Time Text: " %}</label>
-                    <input type="text" id="timeText">
+                    {#                    <label for="timeText">{% trans "Time Text: " %}</label>#}
+                    {#                    <input type="text" id="timeText">#}
                     <hr>
-                    <input id="quickCreateStartTime" type="datetime" name="start">
-                    <input id="quickCreateEndTime" type="datetime" name="end">
-                    <input type="text" name="employee">
-
+                    <div class="form-group">
+                        <p><input id="quickCreateStartTime" type="datetime" name="start">
+                        <input id="quickCreateEndTime" type="datetime" name="end"></p>
+                        <p><input type="text" name="employee"></p>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
@@ -80,8 +76,11 @@
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
                     $('#quickCreateModal').modal('show');
-                    console.log(date);
-                    $('#quickCreateModalContent').append("<p>Creating a new shift for " + date._d + ".</p>")
+                    // this piece of shit offsets the date based on the computers time for some reason
+                    var offset = new Date().getTimezoneOffset();
+                    date = date.zone(-offset);
+
+                    $('#quickCreateModalContent').append("<p id=\"newShiftDate\">Creating a new shift for " + date._d + ".</p>")
                     dayCreate = date;
                 },
                 eventClick: function (calEvent, jsEvent, view) {
@@ -145,7 +144,7 @@
             $('.modal-body').empty();
         });
         $('#quickCreateModal').on('hide.bs.modal', function (e) {
-            $('.modal-body').empty();
+            $('#newShiftDate').remove();
         });
     </script>
 
