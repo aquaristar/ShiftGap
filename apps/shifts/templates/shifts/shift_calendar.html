@@ -35,18 +35,17 @@
     <div class="modal fade" id="quickCreateModal" tabindex="-1" role="dialog" aria-labelledby="quickCreateModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
+                <div id="shiftCreateModalHeader" class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="shiftDetailModalLabel">{% trans "Shift Details" %}</h4>
+
                 </div>
                 <div id="quickCreateModalContent" class="modal-body">
-                    {#                    <label for="timeText">{% trans "Time Text: " %}</label>#}
-                    {#                    <input type="text" id="timeText">#}
+                    <label for="timeText">{% trans "Time Text: " %}</label>
+                    <input type="text" id="timeText">
                     <hr>
                     <div class="form-group">
-                        <p><input id="quickCreateStartTime" type="datetime" name="start">
-                        <input id="quickCreateEndTime" type="datetime" name="end"></p>
-                        <p><input type="text" name="employee"></p>
+                        <p><input id="quickCreateStartTime" type="hidden" name="start">
+                            <input id="quickCreateEndTime" type="hidden" name="end"></p>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -79,8 +78,9 @@
                     // this piece of shit offsets the date based on the computers time for some reason
                     var offset = new Date().getTimezoneOffset();
                     date = date.zone(-offset);
+                    var dateString = date._d.toString().slice(0,15);
 
-                    $('#quickCreateModalContent').append("<p id=\"newShiftDate\">Creating a new shift for " + date._d + ".</p>")
+                    $('#shiftCreateModalHeader').append("<h4 class=\"modal-title\" id=\"newShiftDate\">New Shift for " + dateString + ".</h4>");
                     dayCreate = date;
                 },
                 eventClick: function (calEvent, jsEvent, view) {
@@ -136,15 +136,22 @@
             $('#timeText').keydown(function (e) {
                 if (e.which == 13) {
                     e.preventDefault();
-                    // convert yo magic
+                    var times = shorthand_to_datetimes(dayCreate, $(this).val());
+                    $('#quickCreateStartTime').val(times[0]);
+                    $('#quickCreateEndTime').val(times[1]);
+
                 }
             });
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
-            $('.modal-body').empty();
+            $('#shiftDetailModalContent').empty();
         });
         $('#quickCreateModal').on('hide.bs.modal', function (e) {
             $('#newShiftDate').remove();
+            // clean it all up
+            $('#timeText').val('');
+            $('#quickCreateStartTime').val('');
+            $('#quickCreateEndTime').val('');
         });
     </script>
 
