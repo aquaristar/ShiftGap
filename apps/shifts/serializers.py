@@ -18,6 +18,8 @@ class ShiftSerializer(serializers.ModelSerializer):
         instance.end_time = instance.end_time.astimezone(self.context['request'].user.userprofile.timezone)
         return super(ShiftSerializer, self).to_representation(instance=instance)
 
+    #FIXME validate the user actually belongs the organization
+
     def create(self, validated_data):
         # organization is always inferred from user data - never set externally
         validated_data['organization'] = self.context['request'].user.userprofile.organization
