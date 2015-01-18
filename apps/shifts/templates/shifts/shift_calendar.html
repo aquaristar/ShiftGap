@@ -38,10 +38,17 @@
 
                 </div>
                 <div id="quickCreateModalContent" class="modal-body">
-                    <label for="timeText">{% trans "Time Text: " %}</label>
-                    <input type="text" id="timeText">
+
                     <hr>
                     <div class="form-group">
+                        <p><label for="employeeSelector">{% trans "Employee" %}:</label>
+                            <input id="employeeSelector" type="text" name="employee">
+                            <input type="hidden" id="employeeId">
+                        </p>
+
+                        <p><label for="timeText">{% trans "Time Text: " %}</label>
+                            <input type="text" id="timeText"></p>
+
                         <p><input id="quickCreateStartTime" type="hidden" name="start">
                             <input id="quickCreateEndTime" type="hidden" name="end"></p>
                     </div>
@@ -57,18 +64,14 @@
 {% endblock content %}
 
 {% block tail %}
+    <script src="{% static 'bower_components/typeahead.js/dist/typeahead.bundle.min.js' %}"></script>
     <script>
         var events = {{ events|safe }};
         var employees = {{ employees|safe }};
         var default_schedule = {{ default_schedule|safe }};
         var dayCreate = null;
-        $(document).ready(function () {
 
-            var employeeSelect = $('<select id="employeeSelect" />');
-            for (var val in employees) {
-                $('<option />', {value: employees[val].id, text: employees[val].name}).appendTo(employeeSelect);
-            }
-            employeeSelect.appendTo('#quickCreateModalContent');
+        $(document).ready(function () {
 
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
@@ -84,7 +87,6 @@
                 eventClick: function (calEvent, jsEvent, view) {
                     $('#shiftDetailModal').modal('show');
                     $('#shiftDetailModalContent').append("<p>" + calEvent.title + calEvent.start_time + "</p>");
-                    console.log(calEvent, jsEvent, view);
                 },
                 eventSources: [
                     {
@@ -116,7 +118,7 @@
                         schedule: default_schedule,
                         start_time: $('#quickCreateStartTime').val(),
                         end_time: $('#quickCreateEndTime').val(),
-                        user: $('#employeeSelect').val()
+                        user: $('#employeeId').val()
                     },
                     success: function () {
                         // display something to the user
@@ -137,9 +139,29 @@
                     var times = shorthand_to_datetimes(dayCreate, $(this).val());
                     $('#quickCreateStartTime').val(times[0]);
                     $('#quickCreateEndTime').val(times[1]);
-
+                    $('#saveQuickShift').trigger('click');
                 }
             });
+            // prep Bloodhound suggestion engine for employee drop down selection
+            var engine = new Bloodhound({
+                name: 'employees',
+                local: employees,
+                datumTokenizer: function(d) {
+                    return Bloodhound.tokenizers.whitespace(d.name);
+                },
+                queryTokenizer: Bloodhound.tokenizers.whitespace
+            });
+            engine.initialize();
+            $('#employeeSelector').typeahead({
+                        highlight: true
+                    },
+                    {
+                        name: 'employees',
+                        displayKey: 'name',
+                        source: engine.ttAdapter()
+                    });
+
+
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
             $('#shiftDetailModalContent').empty();
@@ -151,6 +173,13 @@
             $('#quickCreateStartTime').val('');
             $('#quickCreateEndTime').val('');
         });
+        $('#quickCreateModal').on('shown.bs.modal', function (e) {
+            $('#employeeSelector').focus();
+        });
+        $("#employeeSelector").on("typeahead:selected typeahead:autocompleted",
+                function(e,datum) {
+                    $('#employeeId').val(datum.id);
+                });
     </script>
 
 {% endblock tail%}
