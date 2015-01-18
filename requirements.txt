@@ -1,6 +1,4 @@
 Django>=1.7.3
-dj-static==0.0.6
-static3==0.5.1
 django-debug-toolbar==1.2.2
 django-secure==1.0.1
 psycopg2==2.5.4
@@ -13,6 +11,7 @@ django-timezone-field==1.1
 django-braces==1.4.0
 arrow==0.4.4
 djangorestframework==3.0.3
+whitenoise==1.0.6
 
 # testing
 model-mommy
