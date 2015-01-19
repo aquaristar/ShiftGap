@@ -50,7 +50,10 @@ INSTALLED_APPS = (
     'djangosecure',
     'debug_toolbar',
     'timezone_field',
+    'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
 
     # project apps
     'apps.ui',
@@ -60,6 +63,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE_CLASSES = (
     'djangosecure.middleware.SecurityMiddleware',  # django-secure package
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -253,3 +257,5 @@ LOGGING = {
 # run celery tasks synchronously during development
 if not PRODUCTION:
     CELERY_ALWAYS_EAGER = True
+
+CORS_ORIGIN_ALLOW_ALL = True

@@ -78,10 +78,13 @@ class BelongsToOrganization(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organization == request.user.userprofile.organization
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 
 class ShiftListCreateUpdateAPIView(ListCreateAPIView):
     serializer_class = ShiftSerializer
-    # permission_classes = (BelongsToOrganization, )
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def get_queryset(self):
         start = self.request.query_params.get('start', None)
