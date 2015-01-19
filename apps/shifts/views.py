@@ -39,6 +39,10 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
         qs = super().get_queryset()
         return OrganizationPermission(self.request).filter_object_permissions(qs)
 
+    def get_context_data(self, **kwargs):
+        context = super(ShiftListView, self).get_context_data(**kwargs)
+        return context
+
 
 class ShiftListCalendarView(ShiftListView):
     template_name = 'shifts/shift_calendar.html'

@@ -1,18 +1,38 @@
 {% extends "__base.html" %}
 {% load tz %}
+{% load i18n %}
 {% localtime %}
 
-{% block content %}
-    <div class="row">
-    <hr>
+    {% block content %}
+        <div class="row">
+            <hr>
 
+            {% regroup object_list by start_time|date:"Y-m-d" as objects_by_day %}
+            <div class="col-md-8">
+                {% for d in objects_by_day %}
+                    <h5>{{ d.grouper }}</h5>
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <td>{% trans "Time" %}</td>
+                            <td>{% trans "Name" %}</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for shift in d.list %}
+                            <tr>
+                                <td>{{ shift.start_time|time }}  -  {{ shift.end_time|time }}</td>
+                                <td>{{ shift.user }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
 
-    {% for object in object_list %}
-    <p><strong>{{ object.user }}</strong> || from: --- {{ object.start_time }} >>> to: {{ object.end_time }} || schedule {{ object.schedule }}</p>
-    {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="col-md-4">
+            </div>
+        </div>
 
-
-    </div>
-
-{% endblock content%}
+    {% endblock content%}
 {% endlocaltime %}
