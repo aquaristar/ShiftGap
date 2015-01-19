@@ -22,6 +22,7 @@
                     Content here.
                 </div>
                 <div class="modal-footer">
+                    <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                     <button type="button" id="saveShiftDetail" class="btn btn-primary">Save changes</button>
                 </div>
@@ -70,6 +71,7 @@
         var employees = {{ employees|safe }};
         var default_schedule = {{ default_schedule|safe }};
         var dayCreate = null;
+        var currentEvent = null;
 
         $(document).ready(function () {
 
@@ -79,7 +81,7 @@
                     // this piece of shit offsets the date based on the computers time for some reason
                     var offset = new Date().getTimezoneOffset();
                     date = date.zone(-offset);
-                    var dateString = date._d.toString().slice(0,15);
+                    var dateString = date._d.toString().slice(0,15)
 
                     $('#shiftCreateModalHeader').append("<h4 class=\"modal-title\" id=\"newShiftDate\">New Shift for " + dateString + ".</h4>");
                     dayCreate = date;
@@ -87,6 +89,7 @@
                 eventClick: function (calEvent, jsEvent, view) {
                     $('#shiftDetailModal').modal('show');
                     $('#shiftDetailModalContent').append("<p>" + calEvent.title + calEvent.start_time + "</p>");
+                    currentEvent = calEvent;
                 },
                 eventSources: [
                     {
@@ -133,6 +136,26 @@
             $('#saveShiftDetail').click(function () {
                 // POST the details
             });
+            $('#deleteShiftButton').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'shifts:shift_delete_calendar'%}",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        pk: currentEvent.id
+                    },
+                    success: function () {
+                        // display something to the user
+                        alert('Shift Deleted!');
+                        $('#calendar').fullCalendar('refetchEvents');
+                    },
+                    dataType: 'JSON'
+                }).fail(function (err) {
+                    alert('Shift deletion failed!');
+                    $('#calendar').fullCalendar('refetchEvents');
+                });
+                $('#shiftDetailModal').modal('hide');
+            });
             $('#timeText').keydown(function (e) {
                 if (e.which == 13) {
                     e.preventDefault();
@@ -160,8 +183,6 @@
                         displayKey: 'name',
                         source: engine.ttAdapter()
                     });
-
-
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
             $('#shiftDetailModalContent').empty();

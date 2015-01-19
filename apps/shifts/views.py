@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.http.response import HttpResponse, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 
 import arrow
 from rest_framework.views import APIView
@@ -73,13 +76,30 @@ class ShiftUpdateView(OrganizationOwnedRequired, ShiftBaseMixin, UpdateView):
     pass
 
 
+@login_required
+@require_POST
+def delete_shift_from_calendar(request):
+    pk = request.POST['pk']
+    try:
+        shift = Shift.objects.get(pk=pk, organization=request.user.userprofile.organization)
+    except Shift.DoesNotExist:
+        raise Http404()
+
+    shift.delete()
+    response = {"response": "OK"}
+    import json
+    return HttpResponse(json.dumps(response))
+
+
 class BelongsToOrganization(permissions.BasePermission):
     # FIXME review, currently non-functional
     def has_object_permission(self, request, view, obj):
         return obj.organization == request.user.userprofile.organization
 
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication, BasicAuthentication
+from rest_framework.generics import DestroyAPIView
+
 
 class ShiftListCreateUpdateAPIView(ListCreateAPIView):
     serializer_class = ShiftSerializer
@@ -99,9 +119,3 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
                                         start_time__gte=start.datetime, end_time__lte=end.datetime)
         else:
             return Shift.objects.filter(organization=self.request.user.userprofile.organization)
-
-    # def update(self):
-    #     pass
-    #
-    # def create(self, request, *args, **kwargs):
-    #     pass

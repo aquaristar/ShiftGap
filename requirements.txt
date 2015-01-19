@@ -13,5 +13,8 @@ arrow==0.4.4
 djangorestframework==3.0.3
 whitenoise==1.0.6
 
+django-cors-headers==1.0.0
+django-rest-auth==0.3.3
+
 # testing
 model-mommy
