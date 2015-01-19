@@ -93,7 +93,7 @@
                 },
                 eventSources: [
                     {
-                        url: '{% url 'shifts:shift_list_create_api' %}?format=json',
+                        url: '{% url 'shift_list_create_api' %}?format=json',
                         type: 'GET',
                         data: {
                             custom_param1: function () {
@@ -115,7 +115,7 @@
             $('#saveQuickShift').click(function () {
                 $.ajax({
                     type: "POST",
-                    url: "{% url 'shifts:shift_list_create_api' %}",
+                    url: "{% url 'shift_list_create_api' %}",
                     data: {
                         csrfmiddlewaretoken: "{{ csrf_token }}",
                         schedule: default_schedule,

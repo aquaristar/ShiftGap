@@ -1,15 +1,15 @@
-from django.shortcuts import render
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+import json
+
+from django.views.generic import ListView, CreateView, UpdateView
 from django.http.response import HttpResponse, Http404
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
 import arrow
-from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import permissions
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 
 from apps.organizations.views import OrganizationOwnedRequired, UserProfileRequiredMixin, OrganizationPermission
 from apps.ui.models import UserProfile
@@ -91,7 +91,6 @@ def delete_shift_from_calendar(request):
 
     shift.delete()
     response = {"response": "OK"}
-    import json
     return HttpResponse(json.dumps(response))
 
 
@@ -100,14 +99,10 @@ class BelongsToOrganization(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.organization == request.user.userprofile.organization
 
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication, BasicAuthentication
-from rest_framework.generics import DestroyAPIView
-
 
 class ShiftListCreateUpdateAPIView(ListCreateAPIView):
     serializer_class = ShiftSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated, )
     authentication_classes = (TokenAuthentication, SessionAuthentication)
 
     def get_queryset(self):

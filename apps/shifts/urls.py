@@ -14,7 +14,4 @@ urlpatterns = \
              url(r'^calendar/delete/$', 'apps.shifts.views.delete_shift_from_calendar', name='shift_delete_calendar'),
              url(r'^calendar/$', ShiftListCalendarView.as_view(), name='shift_calendar'),
              url(r'^shift/', ShiftCreateView.as_view(), name='shift_create'),
-
-             # FIXME give api endpoints their own urls not under /shifts/
-             url(r'^api/shifts/$', ShiftListCreateUpdateAPIView.as_view(), name='shift_list_create_api'),
              )

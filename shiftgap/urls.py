@@ -10,6 +10,7 @@ from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
 from apps.organizations.views import AccountProfileView, AccountProfileUpdateView
+from apps.shifts.views import ShiftListCreateUpdateAPIView
 
 urlpatterns = patterns('',
 
@@ -29,6 +30,9 @@ urlpatterns = patterns('',
         {'next_page': '/login/'}, name='logout'),
     url(r'^accounts/profile/', AccountProfileView.as_view(), name='account_profile'),
     url(r'^accounts/', include('allauth.urls')),
+
+    # api
+    url(r'^api/1/shifts/$', ShiftListCreateUpdateAPIView.as_view(), name='shift_list_create_api'),
 
     # Misc non django
     url(r'^404\.html$', TemplateView.as_view(template_name='404.html'), name='404'),
