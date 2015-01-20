@@ -55,6 +55,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
     'rest_auth',
     'django_twilio',
+    'djcelery',
 
     # project apps
     'apps.ui',
@@ -258,6 +259,15 @@ LOGGING = {
 # run celery tasks synchronously during development
 if not PRODUCTION:
     CELERY_ALWAYS_EAGER = True
+
+REDIS_URL = environ.get('REDISCLOUD_URL', 'redis://localhost')
+BROKER_URL = REDIS_URL
+BROKER_TRANSPORT = 'redis'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+#CELERY_RESULT_BACKEND = REDIS_URL + '/1'
+CELERY_REDIS_MAX_CONNECTIONS = 2
+CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 CORS_ORIGIN_ALLOW_ALL = True
 

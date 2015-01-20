@@ -1,0 +1,3 @@
+web: newrelic-admin run-program  waitress-serve --port=$PORT shiftgap.wsgi:application
+scheduler: celery beat --app shiftgap.celery
+worker: celery worker --app=shiftgap.celery
