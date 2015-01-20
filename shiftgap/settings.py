@@ -54,6 +54,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
+    'django_twilio',
 
     # project apps
     'apps.ui',
@@ -259,3 +260,5 @@ if not PRODUCTION:
     CELERY_ALWAYS_EAGER = True
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+TWILION_DEFAULT_CALLERID = '+15874091230'

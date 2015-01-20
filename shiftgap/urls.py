@@ -31,8 +31,13 @@ urlpatterns = patterns('',
     url(r'^accounts/profile/', AccountProfileView.as_view(), name='account_profile'),
     url(r'^accounts/', include('allauth.urls')),
 
-    # api
+    # v1 telephony endpoints with twili
+    url(r'^api/1/t/', include('apps.phone.urls', namespace='phone'), name='twilio'),
+    # v1 api
     url(r'^api/1/shifts/$', ShiftListCreateUpdateAPIView.as_view(), name='shift_list_create_api'),
+
+
+
 
     # Misc non django
     url(r'^404\.html$', TemplateView.as_view(template_name='404.html'), name='404'),
