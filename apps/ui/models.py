@@ -11,3 +11,6 @@ class UserProfile(models.Model):
     timezone = TimeZoneField()
     phone = models.CharField(max_length=25, blank=True)
     phone_reminders = models.BooleanField(default=True)
+
+    def __str__(self):
+        return 'Profile for ' + self.user.username

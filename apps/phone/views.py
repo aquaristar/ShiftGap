@@ -11,6 +11,10 @@ def process(request):
 @twilio_view
 def greet_by_name(request):
     r = twiml.Response()
+    from shiftgap.celery import debug_task
+    debug_task.delay()
+    from apps.shifts.tasks import echo
+    echo.delay()
     if request.POST['From'] == '+15876740115':
         r.say('Buenos dias miguel', voice='Male', language='es', loop=None)
     elif request.POST['From'] == '+17803817007':

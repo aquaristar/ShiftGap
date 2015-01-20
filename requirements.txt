@@ -14,8 +14,13 @@ djangorestframework==3.0.3
 whitenoise==1.0.6
 django-twilio==0.8.0
 
+# external
 django-cors-headers==1.0.0
 django-rest-auth==0.3.3
+
+# tasks
+celery==3.1.17
+redis==2.10.3
 
 # testing
 model-mommy
