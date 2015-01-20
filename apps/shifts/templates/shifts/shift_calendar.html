@@ -8,7 +8,25 @@
 
 {% block content %}
 
-    <div id="calendar"></div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="calendar"></div>
+        </div>
+        <div class="col-md-12">
+            <div class="form-inline">
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label><input id="checkEveryone" class="form-control" type="checkbox" value="" checked="true">{% trans "Everyone" %}</label>
+                    </div>
+                    <div class="checkbox">
+                        <label><input id="checkMe" class="form-control" type="checkbox" value="">{% trans "Just Me" %}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- Shift Detail Modal -->
     <div class="modal fade" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -72,8 +90,35 @@
         var default_schedule = {{ default_schedule|safe }};
         var dayCreate = null;
         var currentEvent = null;
+        var me = {{ user.pk }};
 
         $(document).ready(function () {
+
+            var source = {
+                url: '{% url 'shift_list_create_api' %}?format=json',
+                type: 'GET',
+                data: {
+                    custom_param1: function () {
+                        return 'hello'; // this should really be something to help us filter
+                    }
+                },
+                error: function () {
+                    alert('there was an error while fetching events');
+                }
+            };
+
+            var source_filtered = {
+                url: '{% url 'shift_list_filtered_api' %}?format=json',
+                type: 'GET',
+                data: {
+                    user: function () {
+                        return me;
+                    }
+                },
+                error: function () {
+                    alert('there was an error while fetching events');
+                }
+            };
 
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
@@ -81,7 +126,7 @@
                     // this piece of shit offsets the date based on the computers time for some reason
                     var offset = new Date().getTimezoneOffset();
                     date = date.zone(-offset);
-                    var dateString = date._d.toString().slice(0,15)
+                    var dateString = date._d.toString().slice(0,15);
 
                     $('#shiftCreateModalHeader').append("<h4 class=\"modal-title\" id=\"newShiftDate\">New Shift for " + dateString + ".</h4>");
                     dayCreate = date;
@@ -92,18 +137,7 @@
                     currentEvent = calEvent;
                 },
                 eventSources: [
-                    {
-                        url: '{% url 'shift_list_create_api' %}?format=json',
-                        type: 'GET',
-                        data: {
-                            custom_param1: function () {
-                                return 'hello'; // this should really be something to help us filter
-                            }
-                        },
-                        error: function () {
-                            alert('there was an error while fetching events');
-                        }
-                    }
+                    source
                 ],
                 displayEventEnd: true,
                 header: {
@@ -183,6 +217,30 @@
                         displayKey: 'name',
                         source: engine.ttAdapter()
                     });
+
+
+            $('#checkMe').change(function () {
+                if(this.checked) {
+                    // uncheck everyone
+                    $('#checkEveryone').attr('checked', false);
+                    // add source for just me
+                    $('#calendar').fullCalendar('addEventSource', source_filtered);
+                    $('#calendar').fullCalendar('removeEventSource', source);
+
+                }
+            });
+            $('#checkEveryone').change(function () {
+                if(this.checked) {
+                    // uncheck me
+                    $('#checkMe').attr('checked', false);
+                    // add regular source back
+                    $('#calendar').fullCalendar('addEventSource', source);
+                    $('#calendar').fullCalendar('removeEventSource', source_filtered);
+
+                }
+
+            });
+
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
             $('#shiftDetailModalContent').empty();

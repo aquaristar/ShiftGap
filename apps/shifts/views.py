@@ -5,6 +5,7 @@ from django.http.response import HttpResponse, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.contrib.auth.models import User
 
 import arrow
 from rest_framework.generics import ListCreateAPIView
@@ -117,3 +118,20 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
                                         start_time__gte=start.datetime, end_time__lte=end.datetime)
         else:
             return Shift.objects.filter(organization=self.request.user.userprofile.organization)
+
+
+class ShiftListFilteredAPIView(ShiftListCreateUpdateAPIView):
+
+    def get_queryset(self):
+        queryset = super(ShiftListFilteredAPIView, self).get_queryset()
+        # filter by user
+        user = self.request.query_params.get('user', None)
+        if user:
+            print('user is ' + str(user))
+            queryset = queryset.filter(user__pk=user)
+
+        # filter by schedule
+        schedule = self.request.query_params.get('schedule', None)
+        if schedule:
+            queryset = queryset.filter(schedule__pk=schedule)
+        return queryset
