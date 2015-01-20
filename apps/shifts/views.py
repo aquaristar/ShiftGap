@@ -45,6 +45,14 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
         return context
 
 
+class ShiftListForUserView(ShiftListView):
+
+    def get_queryset(self):
+        qs = super(ShiftListForUserView, self).get_queryset()
+        qs = qs.filter(user=self.request.user)
+        return qs
+
+
 class ShiftListCalendarView(ShiftListView):
     template_name = 'shifts/shift_calendar.html'
 
