@@ -74,14 +74,12 @@ class PostLoginView(LoginRequiredMixin, View):
 class UserProfileRequiredMixin(LoginRequiredMixin):
 
     def dispatch(self, request, *args, **kwargs):
-        sup = super().dispatch(request, *args, **kwargs)
         if request.user.is_authenticated():
             try:
-                request.user.userprofile
+                UserProfile.objects.get(user=request.user)
             except UserProfile.DoesNotExist:
                 return HttpResponseRedirect(reverse('account_profile'))
-
-        return sup
+        return super().dispatch(request, *args, **kwargs)
 
 # ###### Views
 
@@ -99,7 +97,7 @@ class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, Create
     def get(self, request, *args, **kwargs):
         # if the user already has an organization in their user profile, we want them to update the existing record
         try:
-            self.request.user.userprofile
+            UserProfile.objects.get(user=request.user)
             return HttpResponseRedirect(reverse('account_profile_update'))
         except UserProfile.DoesNotExist:
             return super(AccountProfileView, self).get(request, *args, **kwargs)
@@ -121,4 +119,4 @@ class AccountProfileUpdateView(LoginRequiredMixin, AccountProfileBaseViewMixin, 
     def form_valid(self, form):
         super(AccountProfileUpdateView, self).form_valid(form)
         self.request.user.userprofile.timezone = self.object.default_tz
-        return self.get_success_url()
+        return HttpResponseRedirect(self.get_success_url())

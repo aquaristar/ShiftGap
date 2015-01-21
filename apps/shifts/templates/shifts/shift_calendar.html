@@ -85,7 +85,6 @@
 {% block tail %}
     <script src="{% static 'bower_components/typeahead.js/dist/typeahead.bundle.min.js' %}"></script>
     <script>
-        var events = {{ events|safe }};
         var employees = {{ employees|safe }};
         var default_schedule = {{ default_schedule|safe }};
         var dayCreate = null;

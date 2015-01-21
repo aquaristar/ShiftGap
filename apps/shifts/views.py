@@ -1,8 +1,8 @@
 import json
 
 
-from django.views.generic import ListView, CreateView, UpdateView
-from django.http.response import HttpResponse, Http404
+from django.views.generic import ListView, CreateView, UpdateView, TemplateView
+from django.http.response import HttpResponse, Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -84,21 +84,12 @@ class ShiftListForUserView(ShiftListView):
         return qs
 
 
-class ShiftListCalendarView(ShiftListView):
+class ShiftListCalendarView(UserProfileRequiredMixin, TemplateView):
     template_name = 'shifts/shift_calendar.html'
 
     def get_context_data(self, **kwargs):
         # Call the base implementation to first get a context
         context = super(ShiftListCalendarView, self).get_context_data(**kwargs)
-        events = []
-        for shift in context['object_list']:
-            events.append({
-                # Fullcalendar.io uses 'title', 'start' and 'end'
-                'title': str(shift.user),
-                'start': str(shift.start_time.astimezone(self.request.user.userprofile.timezone)),
-                'end': str(shift.end_time.astimezone(self.request.user.userprofile.timezone))
-            })
-        context['events'] = events
         ups = UserProfile.objects.filter(organization=self.request.user.userprofile.organization)
         employees = []
         for user in ups:
@@ -149,10 +140,8 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
         start = self.request.query_params.get('start', None)
         end = self.request.query_params.get('end', None)
         if start and end:
-            # import pdb ; pdb.set_trace()
-            start = arrow.get(start).floor('hour')
-            end = arrow.get(end).ceil('hour')
-            # pdb.set_trace()
+            start = arrow.get(start).floor('day')
+            end = arrow.get(end).ceil('day')
 
             # FIXME account for timezone's in dates, floor and ceiling not enough
             return Shift.objects.filter(organization=self.request.user.userprofile.organization,
