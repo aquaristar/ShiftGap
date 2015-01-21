@@ -1,12 +1,24 @@
 {% extends "__base.html" %}
 {% load tz %}
 {% load i18n %}
+{% load static from staticfiles %}
 {% localtime %}
 
-    {% block content %}
-        <div class="row">
-            <hr>
+    {% block head %}
+        <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}"
 
+    {% endblock head %}
+
+
+    {% block content %}
+        <hr>
+        <div class="row">
+            <div id="daterange" class="pull-right">
+                <i class="fa fa-calendar fa-lg"></i>
+                <span>{{ from|date }} - {{ to|date }}</span> <b class="caret"></b>
+            </div>
+        </div>
+        <div class="row">
             {% regroup object_list by start_time|date:"Y-m-d" as objects_by_day %}
             <div class="col-md-8">
                 {% for d in objects_by_day %}
@@ -31,8 +43,36 @@
                 {% endfor %}
             </div>
             <div class="col-md-4">
+
             </div>
         </div>
 
     {% endblock content%}
 {% endlocaltime %}
+
+{% block tail%}
+
+    <script src="{% static "bower_components/bootstrap-daterangepicker/daterangepicker.js" %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#daterange').daterangepicker(
+                    {
+                        ranges: {
+                            'Today': [moment(), moment()],
+                            'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
+                            'Last 7 Days': [moment().subtract('days', 6), moment()],
+                            'Last 30 Days': [moment().subtract('days', 29), moment()],
+                            'This Month': [moment().startOf('month'), moment().endOf('month')],
+                            'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
+                        },
+                        format: 'YYYY-MM-DD',
+                        startDate: moment().subtract('days', 6),
+                        endDate: moment()
+                    },
+                    function(start, end, label) {
+                        window.location.href = {% url 'shifts:shift_list' %} + '?from=' + start.format('YYYY-MM-DD') + '&to=' + end.format('YYYY-MM-DD');
+                    }
+            );
+        });
+    </script>
+{% endblock tail%}

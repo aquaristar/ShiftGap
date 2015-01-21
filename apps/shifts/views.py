@@ -37,6 +37,8 @@ class ShiftBaseMixin(object):
 
 class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
     # can't use organizationownedrequired with a list because no self.get_object()?
+    from_ = None
+    to = None
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -50,16 +52,27 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
             end = datetime.datetime.strptime(to, '%Y-%m-%d')
 
             start = self.request.user.userprofile.timezone.localize(start)
+            start = arrow.get(start).floor('day')
+            start = start.datetime
             end = self.request.user.userprofile.timezone.localize(end)
             end = arrow.get(end)
             end = end.ceil('day').datetime
+        else:
+            start = arrow.now(tz=self.request.user.userprofile.timezone).replace(days=-6)
+            start = start.floor('day')
+            end = arrow.now(tz=self.request.user.userprofile.timezone).ceil('day')
+            start = start.datetime
+            end = end.datetime
 
-            qs = qs.filter(start_time__gte=start, end_time__lte=end).order_by('start_time')
-
+        self.from_ = start
+        self.to = end
+        qs = qs.filter(start_time__gte=start, end_time__lte=end).order_by('start_time')
         return OrganizationPermission(self.request).filter_object_permissions(qs)
 
     def get_context_data(self, **kwargs):
         context = super(ShiftListView, self).get_context_data(**kwargs)
+        context['from'] = self.from_
+        context['to'] = self.to
         return context
 
 
