@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
-from apps.organizations.views import AccountProfileView, AccountProfileUpdateView
+from apps.organizations.views import AccountProfileView, AccountProfileUpdateView, PostLoginView
 from apps.shifts.views import ShiftListCreateUpdateAPIView, ShiftListFilteredAPIView
 
 urlpatterns = patterns('',
@@ -20,6 +20,9 @@ urlpatterns = patterns('',
 
     # include your apps urls files below
     url(r'^shifts/', include('apps.shifts.urls', namespace='shifts')),
+
+    # redirects user after login if they have setup their org or not
+    url(r'^postlogin/$', PostLoginView.as_view(), name='post_login'),
 
     # django all auth
     url(r'^login/$', RedirectView.as_view(url='/accounts/login/'),

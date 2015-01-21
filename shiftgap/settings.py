@@ -129,7 +129,7 @@ STATICFILES_DIRS = (
     root('apps/ui/static'),
 )
 
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = root('staticfiles')
 
 # Template files
 TEMPLATE_DIRS = (
@@ -167,6 +167,7 @@ LOGIN_URL = '/login/'
 
 LOGOUT_URL = '/logout/'
 
+LOGIN_REDIRECT_URL = '/postlogin/'
 
 SOCIALACCOUNT_PROVIDERS = {
     'facebook':
@@ -189,7 +190,6 @@ EMAIL_HOST_PASSWORD = environ.get("SENDGRID_PASSWORD", "")
 EMAIL_PORT = 25
 EMAIL_USE_TLS = False
 
-
 ADMINS = (('Enstrategic', 'info@enstrategic.com'), ('Mike', 'mike@eth0.ca'))
 SERVER_EMAIL = 'info@enstrategic.com'
 
@@ -201,17 +201,6 @@ MESSAGE_TAGS = {message_constants.DEBUG: 'debug',
                 message_constants.WARNING: 'warning',
                 message_constants.ERROR: 'danger', }
 
-# Redis on Heroku
-#REDIS_URL = environ.get('REDISTOGO_URL', 'redis://localhost')
-
-# Using celery on Heroku must limit connections on free/starter plan
-# JSON only is most secure
-## BROKER_URL = REDIS_URL
-#BROKER_TRANSPORT = 'redis'
-#CELERY_TASK_SERIALIZER = 'json'
-#CELERY_ACCEPT_CONTENT = ['json']
-#CELERY_RESULT_BACKEND = REDIS_URL + '/1'
-#CELERY_REDIS_MAX_CONNECTIONS = 2
 
 # AWS settings
 
@@ -228,7 +217,6 @@ AWS_QUERYSTRING_AUTH = False
 #                  'Expires': 'Thu, 31 Dec 2099 20:00:00 GMT',
 #                  'Cache-Control': 'max-age=94608000',
 #                  }
-
 
 # django-secure
 if PRODUCTION:
@@ -269,6 +257,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_REDIS_MAX_CONNECTIONS = 2
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-CORS_ORIGIN_ALLOW_ALL = True
+if not PRODUCTION:
+    CORS_ORIGIN_ALLOW_ALL = True
 
 TWILIO_DEFAULT_CALLERID = '+15874091230'
