@@ -1,5 +1,6 @@
 import json
 
+
 from django.views.generic import ListView, CreateView, UpdateView
 from django.http.response import HttpResponse, Http404
 from django.core.urlresolvers import reverse
@@ -11,6 +12,7 @@ import arrow
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+
 
 from apps.organizations.views import OrganizationOwnedRequired, UserProfileRequiredMixin, OrganizationPermission
 from apps.ui.models import UserProfile
@@ -38,6 +40,22 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
 
     def get_queryset(self):
         qs = super().get_queryset()
+
+        # filter by date range if selected
+        from_ = self.request.GET.get('from', None)
+        to = self.request.GET.get('to', None)
+        if from_ and to:
+            import datetime
+            start = datetime.datetime.strptime(from_, '%Y-%m-%d')
+            end = datetime.datetime.strptime(to, '%Y-%m-%d')
+
+            start = self.request.user.userprofile.timezone.localize(start)
+            end = self.request.user.userprofile.timezone.localize(end)
+            end = arrow.get(end)
+            end = end.ceil('day').datetime
+
+            qs = qs.filter(start_time__gte=start, end_time__lte=end).order_by('start_time')
+
         return OrganizationPermission(self.request).filter_object_permissions(qs)
 
     def get_context_data(self, **kwargs):
@@ -118,8 +136,10 @@ class ShiftListCreateUpdateAPIView(ListCreateAPIView):
         start = self.request.query_params.get('start', None)
         end = self.request.query_params.get('end', None)
         if start and end:
+            # import pdb ; pdb.set_trace()
             start = arrow.get(start).floor('hour')
             end = arrow.get(end).ceil('hour')
+            # pdb.set_trace()
 
             # FIXME account for timezone's in dates, floor and ceiling not enough
             return Shift.objects.filter(organization=self.request.user.userprofile.organization,

@@ -13,10 +13,11 @@ class Schedule(OrganizationOwned, HasLocation):
         unique_together = (('location', 'name'),)
 
 
-class ShiftQuerySetManager(models.Manager):
-
-    def all(self):
-        return self.all()
+# class ShiftQuerySetManager(models.Manager):
+#
+#     def date_range_local(self, request, from_, to):
+#         # hmm ?
+#         pass
 
 
 class Shift(OrganizationOwned):
