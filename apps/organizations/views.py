@@ -9,7 +9,7 @@ from braces.views import LoginRequiredMixin
 from apps.ui.models import UserProfile
 from apps.shifts.models import Schedule
 from .models import Organization, Location
-from .forms import OrganizationSetupForm, UserSetupForm
+from .forms import OrganizationSetupForm, UserSetupForm, UserSetupWithoutOrganizationForm
 
 
 class OrganizationPermission(object):
@@ -113,6 +113,7 @@ class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, Create
 
 
 class AccountProfileUpdateView(LoginRequiredMixin, AccountProfileBaseViewMixin, UpdateView):
+    template_name = 'organizations/organization_profile_update.html'
 
     def get_object(self, queryset=None):
         return self.request.user.userprofile.organization
@@ -143,16 +144,26 @@ class ManagerOrAdminRoleRequiredMixin(UserProfileRequiredMixin):
             return sup
 
 
-class UserSetupView(ManagerOrAdminRoleRequiredMixin, CreateView):
+class UserProfileCreateMixin(object):
     model = UserProfile
     form_class = UserSetupForm
     template_name = 'organizations/userprofile_form.html'
 
-    def get_success_url(self):
-        return reverse('org:user_list')
-
     def get_form_kwargs(self):
-        kwargs = super(UserSetupView, self).get_form_kwargs()
+        kwargs = super(UserProfileCreateMixin, self).get_form_kwargs()
         kwargs = kwargs.copy()
         kwargs['request'] = self.request
         return kwargs
+
+
+class UserSetupView(ManagerOrAdminRoleRequiredMixin, UserProfileCreateMixin, CreateView):
+
+    def get_success_url(self):
+        return reverse('org:user_list')
+
+
+class JoinExistingOrganizationView(LoginRequiredMixin, UserProfileCreateMixin, CreateView):
+    form_class = UserSetupWithoutOrganizationForm
+
+    def get_success_url(self):
+        return reverse('shifts:shift_calendar')

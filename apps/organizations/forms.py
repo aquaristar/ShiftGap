@@ -40,3 +40,25 @@ class UserSetupForm(forms.ModelForm):
         if commit:
             m.save()
         return m
+
+
+class UserSetupWithoutOrganizationForm(forms.ModelForm):
+    organization_code = forms.CharField()
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super(UserSetupWithoutOrganizationForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = UserProfile
+        fields = ('organization_code', 'phone', 'phone_reminders')
+
+    def save(self, commit=True):
+        m = super(UserSetupWithoutOrganizationForm, self).save(commit=False)
+        m.user = self.request.user
+        org = Organization.objects.get(pk=self.cleaned_data['organization_code'])
+        m.organization = org
+        m.timezone = org.default_tz
+        if commit:
+            m.save()
+        return m

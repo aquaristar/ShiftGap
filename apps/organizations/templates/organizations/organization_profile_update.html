@@ -4,23 +4,14 @@
 {% block content %}
 
     <div class="container">
-
         <div class="row"><hr></div>
 
         <div class="row">
-
             <div class="col-lg-6">
-
                 <form method="post" action=".">{% csrf_token %}
                     {{ form.as_p }}
                     <input type="submit" name="{% trans "Submit" %}">
                 </form>
-                <hr>
-                <div class="alert-warning">
-                    {% trans "WARNING: This will create a new company. If you're signing up and would like join an existing company:" %}
-                    <a href="{% url 'org:join_existing' %}">{% trans "Please click here" %}</a>
-                </div>
-    
             </div>
         </div>
     </div>
