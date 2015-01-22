@@ -85,15 +85,15 @@ if PRODUCTION:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': environ.get('P_DB_NAME'),
-            'USER': environ.get('P_DB_USER'),
-            'PASSWORD': environ.get('P_DB_PASSWORD'),
-            'HOST': environ.get('P_DB_HOST'),
-            'PORT': environ.get('P_DB_PORT'),
+            'NAME': environ.get('SG_DB_NAME'),
+            'USER': environ.get('SG_DB_USER'),
+            'PASSWORD': environ.get('SG_DB_PASSWORD'),
+            'HOST': environ.get('SG_DB_HOST'),
+            'PORT': environ.get('SG_DB_PORT'),
             'CONN_MAX_AGE': 900,
             'OPTIONS': {
                 'sslmode': 'verify-full',
-                'sslrootcert': 'procedurized/rds-ssl-ca-cert.pem'
+                'sslrootcert': 'shiftgap/rds-ssl-ca-cert.pem'
             }
         },
         }
@@ -219,7 +219,7 @@ AWS_QUERYSTRING_AUTH = False
 #                  }
 
 # django-secure
-if PRODUCTION:
+if not DEBUG:
     SECURE_SSL_REDIRECT = True  # redirect to SSL
     SECURE_FRAME_DENY = True  # don't allow display in frames
     SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -245,8 +245,7 @@ LOGGING = {
 }
 
 # run celery tasks synchronously during development
-if not PRODUCTION:
-    CELERY_ALWAYS_EAGER = True
+CELERY_ALWAYS_EAGER = True if DEBUG else False
 
 REDIS_URL = environ.get('REDISCLOUD_URL', 'redis://localhost')
 BROKER_URL = REDIS_URL
@@ -257,7 +256,7 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_REDIS_MAX_CONNECTIONS = 2
 CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
-if not PRODUCTION:
-    CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ORIGIN_ALLOW_ALL = True if DEBUG else False
 
 TWILIO_DEFAULT_CALLERID = '+15874091230'
