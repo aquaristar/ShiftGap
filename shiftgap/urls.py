@@ -20,6 +20,7 @@ urlpatterns = patterns('',
 
     # include your apps urls files below
     url(r'^shifts/', include('apps.shifts.urls', namespace='shifts')),
+    url(r'^organization/', include('apps.organizations.urls', namespace='org')),
 
     # redirects user after login if they have setup their org or not
     url(r'^postlogin/$', PostLoginView.as_view(), name='post_login'),

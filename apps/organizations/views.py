@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, Http404
-from django.views.generic import View, FormView, UpdateView, CreateView
+from django.views.generic import View, FormView, UpdateView, CreateView, ListView
+from django.contrib.auth.models import User
 
 from braces.views import LoginRequiredMixin
 
@@ -120,3 +121,11 @@ class AccountProfileUpdateView(LoginRequiredMixin, AccountProfileBaseViewMixin, 
         super(AccountProfileUpdateView, self).form_valid(form)
         self.request.user.userprofile.timezone = self.object.default_tz
         return HttpResponseRedirect(self.get_success_url())
+
+
+class UserListView(UserProfileRequiredMixin, ListView):
+    model = User
+    template_name = 'organizations/user_list.html'
+
+    def get_queryset(self):
+        return User.objects.filter(userprofile__organization=self.request.user.userprofile.organization)

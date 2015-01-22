@@ -1,0 +1,41 @@
+{% extends "__base.html" %}
+{% load i18n %}
+
+{% block head %}
+{% endblock head %}
+
+{% block content %}
+    <hr>
+    <div class="row">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>{% trans "Username" %}</th>
+                <th>{% trans "First Name" %}</th>
+                <th>{% trans "Last Name" %}</th>
+                <th>{% trans "Position" %}</th>
+                <th>{% trans "Phone" %}</th>
+                <th>{% trans "Phone Confirmed" %}</th>
+                <th>{% trans "Reconfirm Phone" %}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in object_list %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.userprofile.role }}</td>
+                    <td>{{ user.userprofile.phone }}</td>
+                    <td>{{ user.userprofile.phone_confirmed }}</td>
+                    <td><button class="btn btn-sm btn-success">Reconfirm</button></td>
+                </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
+{% block tail%}
+
+{% endblock tail %}
