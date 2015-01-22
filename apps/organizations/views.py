@@ -105,7 +105,8 @@ class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, Create
 
     def form_valid(self, form):
         super(AccountProfileView, self).form_valid(form)
-        UserProfile.objects.create(user=self.request.user, organization=self.object, timezone=self.object.default_tz)
+        UserProfile.objects.create(user=self.request.user, organization=self.object, timezone=self.object.default_tz,
+                                   role='ADM')
         # FIXME move this to another user initiated view
         default_location = Location.objects.create(name='Default', organization=self.object, timezone=self.object.default_tz)
         Schedule.objects.create(name='Default', organization=self.object, location=default_location)
