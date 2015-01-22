@@ -11,9 +11,9 @@
     {% block content %}
         <hr>
         <div class="row">
-        <div class="pull-left">
-            <a href="{% url 'shifts:shift_list_user' %}">{% trans "View My Shifts Only" %}</a>
-        </div>
+            <div class="pull-left">
+                <a href="{% url 'shifts:shift_list_user' %}">{% trans "View My Shifts Only" %}</a>
+            </div>
 
             <div id="daterange" class="pull-right">
                 <i class="fa fa-calendar fa-lg"></i>
@@ -60,7 +60,7 @@
             $('#daterange').daterangepicker(
                     {
                         ranges: {
-                            'Today': [moment(), moment()],
+                            'Next 7 Days': [moment(), moment().add('days', 6)],
                             'Yesterday': [moment().subtract('days', 1), moment().subtract('days', 1)],
                             'Last 7 Days': [moment().subtract('days', 6), moment()],
                             'Last 30 Days': [moment().subtract('days', 29), moment()],
@@ -68,8 +68,8 @@
                             'Last Month': [moment().subtract('month', 1).startOf('month'), moment().subtract('month', 1).endOf('month')]
                         },
                         format: 'YYYY-MM-DD',
-                        startDate: moment().subtract('days', 6),
-                        endDate: moment()
+                        startDate: moment(),
+                        endDate: moment().add('days', 7)
                     },
                     function(start, end, label) {
                         window.location.href = {% url 'shifts:shift_list' %} + '?from=' + start.format('YYYY-MM-DD') + '&to=' + end.format('YYYY-MM-DD');
@@ -77,4 +77,4 @@
             );
         });
     </script>
-{% endblock tail%}
+{% endblock tail %}

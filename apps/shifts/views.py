@@ -58,9 +58,9 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
             end = arrow.get(end)
             end = end.ceil('day').datetime
         else:
-            start = arrow.now(tz=self.request.user.userprofile.timezone).replace(days=-6)
-            start = start.floor('day')
-            end = arrow.now(tz=self.request.user.userprofile.timezone).ceil('day')
+            end = arrow.now(tz=self.request.user.userprofile.timezone).replace(days=7)
+            end = end.ceil('day')
+            start = arrow.now(tz=self.request.user.userprofile.timezone).floor('day')
             start = start.datetime
             end = end.datetime
 
