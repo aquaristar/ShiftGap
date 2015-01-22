@@ -9,7 +9,7 @@ from braces.views import LoginRequiredMixin
 from apps.ui.models import UserProfile
 from apps.shifts.models import Schedule
 from .models import Organization, Location
-from .forms import OrganizationSetupForm
+from .forms import OrganizationSetupForm, UserSetupForm
 
 
 class OrganizationPermission(object):
@@ -129,3 +129,30 @@ class UserListView(UserProfileRequiredMixin, ListView):
 
     def get_queryset(self):
         return User.objects.filter(userprofile__organization=self.request.user.userprofile.organization)
+
+
+# FIXME: Better permissions implementation this is a quick and dirty fix
+class ManagerOrAdminRoleRequiredMixin(UserProfileRequiredMixin):
+
+    def dispatch(self, request, *args, **kwargs):
+        # make sure there is a UserProfile before we go any further
+        sup = super().dispatch(request, *args, **kwargs)
+        if self.request.user.userprofile.role != 'MGR' and self.request.user.userprofile.role != 'ADM':
+            return HttpResponseRedirect('/')
+        else:
+            return sup
+
+
+class UserSetupView(ManagerOrAdminRoleRequiredMixin, CreateView):
+    model = UserProfile
+    form_class = UserSetupForm
+    template_name = 'organizations/userprofile_form.html'
+
+    def get_success_url(self):
+        return reverse('org:user_list')
+
+    def get_form_kwargs(self):
+        kwargs = super(UserSetupView, self).get_form_kwargs()
+        kwargs = kwargs.copy()
+        kwargs['request'] = self.request
+        return kwargs

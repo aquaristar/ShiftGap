@@ -1,0 +1,9 @@
+{% extends "__base.html" %}
+
+{% block content %}
+
+    <form class="form-group" method="post" action=".">{% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" name="Submit">
+    </form>
+{% endblock content %}

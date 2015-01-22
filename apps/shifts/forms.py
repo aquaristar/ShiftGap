@@ -2,9 +2,6 @@ import datetime
 
 from django import forms
 from django.contrib.auth.models import User
-from django.db.models import QuerySet
-
-import arrow
 
 from apps.organizations.models import Organization
 from .models import Shift, Schedule
