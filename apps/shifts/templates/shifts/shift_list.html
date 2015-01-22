@@ -5,14 +5,16 @@
 {% localtime %}
 
     {% block head %}
-        <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}"
-
+        <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}">
     {% endblock head %}
-
 
     {% block content %}
         <hr>
         <div class="row">
+        <div class="pull-left">
+            <a href="{% url 'shifts:shift_list_user' %}">{% trans "View My Shifts Only" %}</a>
+        </div>
+
             <div id="daterange" class="pull-right">
                 <i class="fa fa-calendar fa-lg"></i>
                 <span>{{ from|date }} - {{ to|date }}</span> <b class="caret"></b>

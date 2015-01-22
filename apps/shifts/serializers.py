@@ -4,7 +4,7 @@ from .models import Shift
 
 
 class ShiftSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(source='user', read_only=True)
+    title = serializers.CharField(source='user.first_name', read_only=True)
     start = serializers.DateTimeField(source='start_time', read_only=True)
     end = serializers.DateTimeField(source='end_time', read_only=True)
 
@@ -16,6 +16,13 @@ class ShiftSerializer(serializers.ModelSerializer):
         # always convert to users timezone when displaying shifts
         instance.start_time = instance.start_time.astimezone(self.context['request'].user.userprofile.timezone)
         instance.end_time = instance.end_time.astimezone(self.context['request'].user.userprofile.timezone)
+        # import pdb ; pdb.set_trace()
+
+        # if first name is not set we use the username
+        # FIXME eventually reqire first name, last name for all accounts
+        if not instance.user.first_name:
+            instance.user.first_name = instance.user.username
+
         return super(ShiftSerializer, self).to_representation(instance=instance)
 
     #FIXME validate the user actually belongs the organization

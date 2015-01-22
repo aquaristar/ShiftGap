@@ -15,8 +15,9 @@
             {% if user.is_authenticated %}
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="{% url 'home' %}">{% trans "Home" %}</a></li>
+                    <li><a href="{% url 'org:user_list' %}">{% trans "Staff" %}</a></li>
                     <li><a href="{% url 'shifts:shift_list' %}">{% trans "Shifts" %}</a></li>
-                    <li><a href="{% url 'shifts:shift_list_user' %}">{% trans "My Shifts" %}</a></li>
+
                     <li><a href="{% url 'shifts:shift_create' %}">{% trans "New Shift" %}</a></li>
                     <li><a href="{% url 'shifts:shift_calendar' %}">{% trans "Calendar" %}</a></li>
                 </ul>

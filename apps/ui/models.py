@@ -26,3 +26,15 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return _('Profile for ') + self.user.username
+
+    @property
+    def admin(self):
+        return True if self.role == 'ADM' else False
+
+    @property
+    def manager(self):
+        return True if self.role == 'MGR' else False
+
+    @property
+    def admin_or_manager(self):
+        return True if self.role == 'ADM' or self.role == 'MGR' else False

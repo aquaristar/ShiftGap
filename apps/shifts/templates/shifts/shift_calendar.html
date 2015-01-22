@@ -38,7 +38,7 @@
                     <h4 class="modal-title" id="shiftDetailModalLabel">{% trans "Shift Details" %}</h4>
                 </div>
                 <div id="shiftDetailModalContent" class="modal-body">
-                    Content here.
+
                 </div>
                 <div class="modal-footer">
                     <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
@@ -133,7 +133,9 @@
                 },
                 eventClick: function (calEvent, jsEvent, view) {
                     $('#shiftDetailModal').modal('show');
-                    $('#shiftDetailModalContent').append("<p>" + calEvent.title + calEvent.start_time + "</p>");
+                    $('#shiftDetailModalContent').append("<h2>User: " + calEvent.title + "</h2>" +
+                    "<br /><br /><h3>" + calEvent.start.format('h:mm a') + " -- " + calEvent.end.format('h:mm a') + "</h3>");
+
                     currentEvent = calEvent;
                 },
                 eventSources: [

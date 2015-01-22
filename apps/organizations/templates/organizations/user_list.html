@@ -35,6 +35,12 @@
             </tbody>
         </table>
     </div>
+    {% if user.userprofile.admin_or_manager %}
+        <div class="row">
+        <a href="{% url 'org:user_setup' %}"><button class="btn btn-primary">{% trans "Add New User" %}</button></a>
+        <hr>
+    {% endif %}
+</div>
 {% endblock content %}
 {% block tail%}
 
