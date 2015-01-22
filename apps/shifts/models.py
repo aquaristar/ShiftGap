@@ -15,11 +15,23 @@ class Schedule(OrganizationOwned, HasLocation):
         unique_together = (('location', 'name'),)
 
 
+class ShiftManager(models.Manager):
+
+    def publish(self, from_, to):
+        # publish the shifts
+        # FIXME
+        return 'list_of_shifts_that_was_published'
+
+
 class Shift(OrganizationOwned):
     schedule = models.ForeignKey(Schedule)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     user = models.ForeignKey('auth.User')
+    published = models.BooleanField(default=False)
+    twenty_four_hour_reminder_sent = models.BooleanField(default=False)
+    ninety_minute_reminder_sent = models.BooleanField(default=False)
+    user_has_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username + ' from ' + str(self.start_time) + ' to ' + str(self.end_time)
