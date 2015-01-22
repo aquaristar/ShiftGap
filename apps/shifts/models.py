@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from apps.organizations.models import OrganizationOwned, HasLocation
 
@@ -11,13 +13,6 @@ class Schedule(OrganizationOwned, HasLocation):
 
     class Meta:
         unique_together = (('location', 'name'),)
-
-
-# class ShiftQuerySetManager(models.Manager):
-#
-#     def date_range_local(self, request, from_, to):
-#         # hmm ?
-#         pass
 
 
 class Shift(OrganizationOwned):
@@ -36,3 +31,8 @@ class Shift(OrganizationOwned):
     def end_date(self, request):
         # date as would be represented by the requesting users timezone
         return self.end_time.astimezone(tz=request.user.userprofile.timezone).date()
+
+    def clean(self):
+        # Don't allow a start time to occur after an end time
+        if self.start_time > self.end_time:
+            raise ValidationError(_('Start time cannot occur after end time.'))
