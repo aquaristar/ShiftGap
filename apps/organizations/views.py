@@ -109,7 +109,7 @@ class AccountProfileView(LoginRequiredMixin, AccountProfileBaseViewMixin, Create
         # FIXME move this to another user initiated view
         default_location = Location.objects.create(name='Default', organization=self.object, timezone=self.object.default_tz)
         Schedule.objects.create(name='Default', organization=self.object, location=default_location)
-        return self.get_success_url()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class AccountProfileUpdateView(LoginRequiredMixin, AccountProfileBaseViewMixin, UpdateView):
