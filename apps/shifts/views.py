@@ -93,10 +93,19 @@ class ShiftListCalendarView(UserProfileRequiredMixin, TemplateView):
         ups = UserProfile.objects.filter(organization=self.request.user.userprofile.organization)
         employees = []
         for user in ups:
-            employees.append({
-                'name': user.user.username,
-                'id': user.user.pk
-            })
+            if user.user.first_name:
+                name = user.user.first_name + ' ' + (user.user.last_name[0] if user.user.last_name else '')
+                employees.append({
+                    'name': name,
+                    'id': user.user.pk
+                })
+            else:
+                # fall back to using their username if no first_name in profile
+                # FIXME: we need to require first_name for all accounts and remove this code
+                employees.append({
+                    'name': user.user.username,
+                    'id': user.user.pk
+                })
         context['employees'] = employees
         context['default_schedule'] = Schedule.objects.get(organization=self.request.user.userprofile.organization,
                                                            name='Default').pk
