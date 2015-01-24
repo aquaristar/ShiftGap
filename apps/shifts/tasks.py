@@ -44,7 +44,8 @@ def twenty_four_hour_reminder():
                 if shift.user.userprofile.phone_reminders and shift.user.userprofile.phone_confirmed:
                     # send a reminder
                     user_start_time = shift.start_time.astimezone(shift.user.userprofile.timezone)
-                    user_start_time = arrow.get(user_start_time).humanize()
+                    # user_start_time = arrow.get(user_start_time).humanize()
+                    user_start_time = user_start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
                     message = "%s, you are scheduled to work %s" % (shift.user.first_name, user_start_time)
                     sms = twilio_client.messages.create(
                         body=message,
@@ -70,7 +71,8 @@ def ninety_minute_reminder():
                     # send a reminder
                     # make the time in the users own timezone
                     user_start_time = shift.start_time.astimezone(shift.user.userprofile.timezone)
-                    user_start_time = arrow.get(user_start_time).humanize()
+                    # user_start_time = arrow.get(user_start_time).humanize()
+                    user_start_time = user_start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
                     message = "%s, you have a shift starting soon %s." % (shift.user.first_name, user_start_time)
                     sms = twilio_client.messages.create(
                         body=message,
