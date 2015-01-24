@@ -18,37 +18,37 @@ function isValidRangeFormat(t) {
     // For longer strings, or those not starting with a digit
     // we return `undefined`:
     return ((typeof t == 'string' || t instanceof String) &&
-            (t.length <= 15) &&
-            t.match(/^[0-9]/) &&
-            true
-           );
+    (t.length <= 15) &&
+    t.match(/^[0-9]/) &&
+    true
+    );
 }
 
 /*
-Parsing time from multiple input formats, such as:
-"9",      "17",
-"9a",     "5p",
-"11am",   "1pm",
-"9:45",   "13:45",
-"9:45a",  "2p",
-"1215",   "235",
-"1030am", "4pm"
+ Parsing time from multiple input formats, such as:
+ "9",      "17",
+ "9a",     "5p",
+ "11am",   "1pm",
+ "9:45",   "13:45",
+ "9:45a",  "2p",
+ "1215",   "235",
+ "1030am", "4pm"
 
-Strategy:
-We want to convert every of those inputs into one specific format: "HHmm"
+ Strategy:
+ We want to convert every of those inputs into one specific format: "HHmm"
 
-Step 1: ensure a colon (if present) is followed by two digits
-Step 2: removing the colon
-Step 3: Remove am/pm (but remember which it was) if possible
-Step 4: We have now time strings such as:
-        "9", "17", "1215", "235" or "1030"
-        Two cases:
-        a) string length is 1 or 2. In this case time means hours
-        b) string length is 3 or 4.
-           In this case we split by interpreting the two ending digits
-           as minutes, and the one or two leading digit(s) as hour(s).
-Step 5: convert 12:mm AM to 00:mm
-*/
+ Step 1: ensure a colon (if present) is followed by two digits
+ Step 2: removing the colon
+ Step 3: Remove am/pm (but remember which it was) if possible
+ Step 4: We have now time strings such as:
+ "9", "17", "1215", "235" or "1030"
+ Two cases:
+ a) string length is 1 or 2. In this case time means hours
+ b) string length is 3 or 4.
+ In this case we split by interpreting the two ending digits
+ as minutes, and the one or two leading digit(s) as hour(s).
+ Step 5: convert 12:mm AM to 00:mm
+ */
 function parseTime(t) {
     var tmp;
     var hours;
@@ -93,6 +93,10 @@ function parseTime(t) {
     if ( containsAMorPM && (hours == 12) ) hours = 0;
     hours += add12Hours;
 
+    // Step: plausibility check (hours < 0 or hours > 23) assume it's an error
+    if ( (hours < 0) || (hours > 23) || (minutes < 0) || (minutes > 59) )
+        return;  // returning `undefined`
+
     return [hours, minutes];
 }
 
@@ -106,6 +110,11 @@ function parseRange(r) {
 }
 
 function shorthand_to_datetimes(date, timeString) {
+    // strip out any whitespace first
+    timeString = timeString.split(" ").join("");
+    timeString = timeString.replace("to", "-");
+    //console.log(timeString);
+
     if (!isValidRangeFormat(timeString)) {
         console.log("Format of »" + timeString + "« is not valid!");
         return;
@@ -138,8 +147,8 @@ function shorthand_to_datetimes(date, timeString) {
         // Checking if any hour is >23 or minute >59:
         if ((h1 > 23) || (h2 > 23) || (m1 > 59) || (m2 > 59))
             throw("Invalid time: »" +
-                  range[0] + "« or " +
-                  range[1] + "«");
+            range[0] + "« or " +
+            range[1] + "«");
 
         if ((h1 == h2) && (m2 < m1)) throw("end time BEFORE start time");
         var e = moment(day + " " + hoursminsToString(range[1])).format();
@@ -167,7 +176,8 @@ function test(timeString) {
 }
 
 // provided test cases:
-// /*
+//
+/*
 test("9-17");       // -> output [date + "09:00:00", date + "17:00:00"]
 test("9a-5p");      // -> output [date + "09:00:00", date + "17:00:00"]
 test("11am-1pm");   // -> output [date + "11:00:00, date + "13:00:00"]
@@ -177,4 +187,9 @@ test("1215-235");   // -> output [date + "12:15:00, date + "14:35:00"]
 test("1030am-4pm"); // -> output [date + "10:30:00, date + "16:00:00]
 test("hello");      // -> output -1
 test("1030am-4");   // -> output -1  => Why? We can parse this! :-)
-// */
+test("10:00am-4"); // output
+test("10 am - 5 pm");
+test("10a - 5p");
+test("10 am to 5 pm");
+//
+*/
