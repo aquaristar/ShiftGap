@@ -187,9 +187,16 @@ test("1215-235");   // -> output [date + "12:15:00, date + "14:35:00"]
 test("1030am-4pm"); // -> output [date + "10:30:00, date + "16:00:00]
 test("hello");      // -> output -1
 test("1030am-4");   // -> output -1  => Why? We can parse this! :-)
-test("10:00am-4"); // output
+test("10:00am-4"); // output [date + "10:30:00, date + "16:00:00]
 test("10 am - 5 pm");
 test("10a - 5p");
 test("10 am to 5 pm");
+test("10pm to 2am"; // output [date + "10:30:00, (date + 1) + "02:00:00] (note the date + 1)
+test("5pm to 12am"); // output [date + "17:00:00, (date + 1) + "00:00:00]
+test("6pm to 12"); // output [date + "18:00:00, (date + 1) + "00:00:00]
+test("2000-0230"); // output [date + "20:00:00, (date + 1) + "02:30:00]
+test("19:45 - 300"); // output [date + "19:45:00, (date + 1) + "03:00:00]
+test("11 p to 1 a"); // output [date + "23:00:00, (date + 1) + "01:00:00]
+test("2300 - 0000"); // output [date + "23:00:00, (date + 1) + "00:00:00]
 //
 */
