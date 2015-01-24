@@ -16,6 +16,17 @@ def echo():
 
 
 @app.task
+def notify_employees_new_schedule_posted():
+    pass
+
+
+@app.task
+def notify_imminent_shift_add():
+    # if an employee is added to a shift that starts within the next
+    pass
+
+
+@app.task
 def new_shift_reminder(shift_id):
     shift = Shift.objects.get(pk=shift_id)
     if shift.user.userprofile.phone_reminders:

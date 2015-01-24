@@ -1,18 +1,15 @@
 import json
 
-
 from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 from django.http.response import HttpResponse, Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.contrib.auth.models import User
 
 import arrow
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-
 
 from apps.organizations.views import OrganizationOwnedRequired, UserProfileRequiredMixin, OrganizationPermission
 from apps.ui.models import UserProfile
