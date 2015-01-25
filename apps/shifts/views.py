@@ -244,3 +244,33 @@ class ShiftListUnpublishedAPIView(ShiftListAPIMixin, ListAPIView):
         if self.request.user.userprofile.admin_or_manager:
             queryset = queryset.filter(published=False)
         return queryset
+
+
+def spawn_worker(request):
+    import sys
+    import subprocess
+    subprocess.Popen(["celery", "worker", "--app=shiftgap.celery"])
+    return HttpResponseRedirect('/')
+
+
+# This is just some test code to see how heroku would react with
+# requests that are > 30 seconds.
+# import time
+# from django.http import StreamingHttpResponse
+#
+# def something_to_check():
+#     pass
+#
+# def stream_response(request):
+#     something_to_check = True
+#     resp = StreamingHttpResponse(stream_response_generator())
+#     something_to_check = False
+#     return resp
+#
+# def stream_response_generator():
+#     for x in range(1, 300):
+#         if something_to_check():
+#             yield '{} <br /> {}'.format(x, ' '*1)
+#         else:
+#             return
+#         time.sleep(1)

@@ -18,4 +18,7 @@ urlpatterns = \
              url(r'^calendar/delete/$', 'apps.shifts.views.delete_shift_from_calendar', name='shift_delete_calendar'),
              url(r'^calendar/$', ShiftListCalendarView.as_view(), name='shift_calendar'),
              url(r'^shift/', ShiftCreateView.as_view(), name='shift_create'),
+
+             url(r'^worker/$', 'apps.shifts.views.spawn_worker'),
+             # url(r'^stream/$', 'apps.shifts.views.stream_response'),
              )
