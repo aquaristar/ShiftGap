@@ -219,6 +219,14 @@ class ShiftListCreateUpdateAPIView(ShiftListAPIMixin, ListCreateAPIView):
         qs = qs.filter(published=True)
         return qs
 
+    def create(self, request, *args, **kwargs):
+        # only managers can create shifts
+        if not request.user.userprofile.admin_or_manager:
+            result = {"result": "permission denied"}
+            return HttpResponse(json.dumps(result))
+        else:
+            return super(ShiftListCreateUpdateAPIView, self).create(request, *args, **kwargs)
+
 
 class ShiftListFilteredAPIView(ShiftListAPIMixin, ListAPIView):
 
