@@ -34,7 +34,6 @@ def greet_by_name(request):
 
 @twilio_view
 def record_incoming_sms(request):
-    # import pdb ; pdb.set_trace()
 
     r = twiml.Response()
     message = request.POST['Body'].lower()
