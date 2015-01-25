@@ -19,11 +19,8 @@ def send_user_phone_confirmation_code(user_id):
         up = UserProfile.objects.get(user__pk=user_id)
         print(str(up))
         if up.phone_number and not up.phone_confirmed:
-            print('Im inside')
             up.phone_confirmation_code = code
             up.save()
-            print('phone conf code is ' + str(code))
-            print(up.phone_confirmation_code)
             # send the code to the phone number
             message = _('Your message activation code is %s') % str(code)
             msg = twilio_client.messages.create(
@@ -31,4 +28,3 @@ def send_user_phone_confirmation_code(user_id):
                 to=up.phone_number,
                 from_=settings.TWILIO_DEFAULT_CALLERID
             )
-            repr(msg)

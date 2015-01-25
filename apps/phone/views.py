@@ -8,6 +8,7 @@ from twilio import twiml
 from django_twilio.decorators import twilio_view
 
 from apps.organizations.views import UserProfileRequiredMixin
+from apps.ui.models import UserProfile
 
 
 def process(request):
@@ -33,7 +34,32 @@ def greet_by_name(request):
 
 @twilio_view
 def record_incoming_sms(request):
-    pass
+    # import pdb ; pdb.set_trace()
+
+    r = twiml.Response()
+    message = request.POST['Body'].lower()
+    if message == 'stop' or message == 'unsubscribe':
+        '''
+        Stop and un subscribe messages are handled at the Twilio level but they pass the information along
+        to us so that we can update our records accordingly. No responses will be made when to the STOP or
+        un subscribe message.
+        See: https://www.twilio.com/help/faq/sms/does-twilio-support-stop-block-and-cancel-aka-sms-filtering
+        '''
+        ups = UserProfile.objects.filter(phone_number=request.POST['From'])
+        for up in ups:
+            up.phone_confirmed = False
+            up.save()
+    if message == 'start' or message == 'yes':
+        # Responses will be sent to the START and YES messages
+        ups = UserProfile.objects.filter(phone_number=request.POST['From'])
+        for up in ups:
+            up.phone_confirmed = True
+            up.save()
+        if ups:
+            name = ups[0].user.first_name
+            msg = _('Hi %s, your number is now confirmed!') % name
+            r.message(msg=msg)
+    return r
 
 
 class ConfirmPhoneView(UserProfileRequiredMixin, TemplateView):
