@@ -246,13 +246,11 @@ class ShiftListUnpublishedAPIView(ShiftListAPIMixin, ListAPIView):
         return queryset
 
 
-def spawn_worker(request):
-    import sys
-    import subprocess
-    subprocess.Popen(["celery", "worker", "--app=shiftgap.celery"])
-    return HttpResponseRedirect('/')
-
-
+# def spawn_worker(request):
+#     import sys
+#     import subprocess
+#     subprocess.Popen(["celery", "worker", "--app=shiftgap.celery"])
+#     return HttpResponseRedirect('/')
 # This is just some test code to see how heroku would react with
 # requests that are > 30 seconds.
 # import time
