@@ -3,13 +3,16 @@ from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, Http404
 from django.views.generic import View, FormView, UpdateView, CreateView, ListView
 from django.contrib.auth.models import User
+from django.contrib import messages
+from django.utils.translation import ugettext as _
 
 from braces.views import LoginRequiredMixin
 
 from apps.ui.models import UserProfile
 from apps.shifts.models import Schedule
+from apps.phone.tasks import send_user_phone_confirmation_code
 from .models import Organization, Location
-from .forms import OrganizationSetupForm, UserSetupForm, UserSetupWithoutOrganizationForm
+from .forms import OrganizationSetupForm, UserSetupForm, UserSetupWithoutOrganizationForm, UserEditForm
 
 
 class OrganizationPermission(object):
@@ -131,6 +134,46 @@ class UserListView(UserProfileRequiredMixin, ListView):
 
     def get_queryset(self):
         return User.objects.filter(userprofile__organization=self.request.user.userprofile.organization)
+
+    def post(self, request, *args, **kwargs):
+        if self.request.user.userprofile.phone_number:
+            user_id = request.POST['user_id']
+            send_user_phone_confirmation_code.delay(user_id)
+            messages.success(request, _('You should be receiving a confirmation text shortly!'))
+            return HttpResponseRedirect(reverse('phone:confirm_phone'))
+        else:
+            messages.error(request, _("You need to have a phone number saved to your profile before you can confirm it,"))
+            return HttpResponseRedirect(reverse('org:user_list'))
+
+
+class UserEditView(UserProfileRequiredMixin, UpdateView):
+    model = UserProfile
+    form_class = UserEditForm
+    template_name = 'organizations/userprofile_form.html'
+
+    def get_initial(self):
+        initial = {'first_name': self.get_object().user.first_name,
+                   'last_name': self.get_object().user.last_name}
+        return initial
+
+    def form_valid(self, form):
+        user = self.get_object().user
+        user.first_name = form.cleaned_data['first_name']
+        user.last_name = form.cleaned_data['last_name']
+        user.save()
+        return super(UserEditView, self).form_valid(form=form)
+
+    def get_success_url(self):
+        return reverse('org:user_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        pk = self.kwargs.get(self.pk_url_kwarg, None)
+        if self.request.user.userprofile.pk != int(pk) and not self.request.user.userprofile.admin_or_manager:
+            messages.warning(request, "You can only modify your own profile. To modify another users profile,"
+                                      "you must be an admin or manager.")
+            return HttpResponseRedirect(reverse('org:user_list'))
+        else:
+            return super(UserEditView, self).dispatch(request, *args, **kwargs)
 
 
 # FIXME: Better permissions implementation this is a quick and dirty fix

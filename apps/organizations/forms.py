@@ -25,7 +25,7 @@ class UserSetupForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'phone', 'phone_reminders', 'role')
+        fields = ('username', 'password', 'first_name', 'last_name', 'email', 'phone_number', 'phone_reminders', 'role')
 
     def save(self, commit=True):
         # create new user
@@ -51,7 +51,7 @@ class UserSetupWithoutOrganizationForm(forms.ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ('organization_code', 'phone', 'phone_reminders')
+        fields = ('organization_code', 'phone_number', 'phone_reminders')
 
     def save(self, commit=True):
         m = super(UserSetupWithoutOrganizationForm, self).save(commit=False)
@@ -62,3 +62,12 @@ class UserSetupWithoutOrganizationForm(forms.ModelForm):
         if commit:
             m.save()
         return m
+
+
+class UserEditForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=30, required=True)
+    last_name = forms.CharField(max_length=30, required=True)
+
+    class Meta:
+        model = UserProfile
+        fields = ('first_name', 'last_name', 'phone_number', 'phone_reminders')

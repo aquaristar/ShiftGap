@@ -19,13 +19,30 @@ class UserProfile(models.Model):
     user = models.OneToOneField('auth.User')
     organization = models.ForeignKey(Organization)
     timezone = TimeZoneField()
-    phone = models.CharField(max_length=25, blank=True)
+    phone_number = models.CharField(max_length=25, blank=True, verbose_name=_('Full number including country code, +1'))
+    phone_confirmation_code = models.CharField(max_length=5, blank=True)
     phone_reminders = models.BooleanField(default=True)
     phone_confirmed = models.BooleanField(default=False)
     role = models.CharField(max_length=3, choices=USER_ROLES, default=USER)
 
+    __original_number = None
+
+    def __init__(self, *args, **kwargs):
+        super(UserProfile, self).__init__(*args, **kwargs)
+        self.__original_number = self.phone_number
+
     def __str__(self):
         return _('Profile for ') + self.user.username
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        # if a user changes their phone number, we need to make them confirm it again
+        if self.phone_number != self.__original_number:
+            self.phone_confirmed = False
+            self.phone_confirmation_code = ''
+        super(UserProfile, self).save(force_insert=force_insert, force_update=force_update, using=using,
+                                      update_fields=update_fields)
+        self.__original_number = self.phone_number
 
     @property
     def admin(self):

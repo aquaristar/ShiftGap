@@ -1,5 +1,7 @@
 from django.conf.urls import patterns, include, url
 
+from .views import ConfirmPhoneView
+
 urlpatterns = \
     patterns('',
 
@@ -7,7 +9,7 @@ urlpatterns = \
              url(r'^phone/$', 'apps.phone.views.greet_by_name', name='phone_test'),
 
              # all incoming sms messages to to this endpoint
-             url(r'^sms/$', 'django_twilio.views.message', {
-                 'message': 'Thanks for the message. A representative will get back to you shortly.'
-             }),
+             url(r'^sms/$', 'apps.phone.views.record_incoming_sms', name='record_incoming_sms'),
+
+             url(r'^confirm/$', ConfirmPhoneView.as_view(), name='confirm_phone'),
              )

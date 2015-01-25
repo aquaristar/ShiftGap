@@ -1,0 +1,12 @@
+{% extends "__base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+    <form class="form-group" method="post" action=".">{% csrf_token %}
+        <label for="id_confirmation">{% trans "Confirmation Code" %}</label>
+    <input type="text" name="confirmation" id="id_confirmation">
+    <input class="form-control" type="submit" name="{% trans "Submit" %}">
+    </form>
+
+{% endblock content %}

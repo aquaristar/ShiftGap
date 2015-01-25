@@ -30,10 +30,10 @@ def notify_imminent_shift_add():
 def new_shift_reminder(shift_id):
     shift = Shift.objects.get(pk=shift_id)
     if shift.user.userprofile.phone_reminders:
-        if shift.user.userprofile.phone:
+        if shift.user.userprofile.phone_number:
             # send a txt message
             message = "%s you've been added to a shift." % shift.user.username
-            phone = shift.user.userprofile.phone
+            phone = shift.user.userprofile.phone_number
             msg = twilio_client.messages.create(
                 body=message,
                 to=phone,
@@ -60,7 +60,7 @@ def twenty_four_hour_reminder():
                     message = "%s, you are scheduled to work %s" % (shift.user.first_name, user_start_time)
                     sms = twilio_client.messages.create(
                         body=message,
-                        to=shift.user.userprofile.phone,
+                        to=shift.user.userprofile.phone_number,
                         from_=settings.TWILIO_DEFAULT_CALLERID
                     )
                     shift.twenty_four_hour_reminder_sent = True
@@ -87,7 +87,7 @@ def ninety_minute_reminder():
                     message = "%s, you have a shift starting soon %s." % (shift.user.first_name, user_start_time)
                     sms = twilio_client.messages.create(
                         body=message,
-                        to=shift.user.userprofile.phone,
+                        to=shift.user.userprofile.phone_number,
                         from_=settings.TWILIO_DEFAULT_CALLERID
                     )
                     shift.ninety_minute_reminder_sent = True

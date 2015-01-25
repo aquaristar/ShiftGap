@@ -35,8 +35,10 @@ urlpatterns = patterns('',
     url(r'^accounts/profile/', AccountProfileView.as_view(), name='account_profile'),
     url(r'^accounts/', include('allauth.urls')),
 
-    # v1 telephony endpoints with twili
-    url(r'^api/1/t/', include('apps.phone.urls', namespace='phone'), name='twilio'),
+    # user interaction with 'phone' app at /phone/, api interaction at /api/v1/t/
+    url(r'^phone/', include('apps.phone.urls', namespace='phone'), name='phone'),
+    # v1 telephony endpoints with twilio
+    url(r'^api/v1/t/', include('apps.phone.urls', namespace='phone'), name='twilio'),
     # v1 api
     url(r'^api/v1/shifts/filtered/$', ShiftListFilteredAPIView.as_view(), name='shift_list_filtered_api'),
     url(r'^api/v1/shifts/$', ShiftListCreateUpdateAPIView.as_view(), name='shift_list_create_api'),

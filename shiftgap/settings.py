@@ -61,6 +61,7 @@ INSTALLED_APPS = (
     'apps.ui',
     'apps.organizations',
     'apps.shifts',
+    'apps.phone',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -143,7 +144,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
     "django.core.context_processors.static",
     "django.core.context_processors.tz",
-    "django.core.context_processors.request",
+    "django.core.context_processors.request",  # not included by default but django-allauth needs it
     "django.contrib.messages.context_processors.messages",
 
     # project specific

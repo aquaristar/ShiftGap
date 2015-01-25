@@ -22,13 +22,15 @@
             <tbody>
             {% for user in object_list %}
                 <tr>
-                    <td>{{ user.username }}</td>
+                    <td><a href="{% url 'org:user_edit' pk=user.userprofile.pk %}">{{ user.username }}</a></td>
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.last_name }}</td>
                     <td>{{ user.userprofile.role }}</td>
-                    <td>{{ user.userprofile.phone }}</td>
+                    <td>{{ user.userprofile.phone_number }}</td>
                     <td>{{ user.userprofile.phone_confirmed }}</td>
-                    <td><button class="btn btn-sm btn-success">{% trans "Reconfirm" %}</button></td>
+                    <td><form method="post" action=".">{% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.pk }}">
+                        <button class="btn btn-sm btn-success">{% trans "Reconfirm" %}</button></form></td>
                 </tr>
             {% endfor %}
 
