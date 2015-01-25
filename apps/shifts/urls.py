@@ -3,7 +3,7 @@ from django.conf.urls import patterns, include, url
 from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
-from .views import ShiftListView, ShiftCreateView, ShiftUpdateView, ShiftListCalendarView, ShiftListForUserView,\
+from .views import ShiftListView, ShiftCreateView, ShiftUpdateView, ShiftListCalendarView, ShiftListForUserView, \
     ShiftPublishFormView
 
 
@@ -19,6 +19,7 @@ urlpatterns = \
              url(r'^calendar/$', ShiftListCalendarView.as_view(), name='shift_calendar'),
              url(r'^shift/', ShiftCreateView.as_view(), name='shift_create'),
 
-             url(r'^worker/$', 'apps.shifts.views.spawn_worker'),
+             # Testing view do not use in production
+             # url(r'^worker/$', 'apps.shifts.views.spawn_worker'),
              # url(r'^stream/$', 'apps.shifts.views.stream_response'),
-             )
+    )
