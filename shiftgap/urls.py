@@ -10,7 +10,7 @@ from django.views.generic import TemplateView, RedirectView
 from django.http import HttpResponseRedirect
 
 from apps.organizations.views import AccountProfileView, AccountProfileUpdateView, PostLoginView
-from apps.shifts.views import ShiftListCreateUpdateAPIView, ShiftListFilteredAPIView
+from apps.shifts.views import ShiftListCreateUpdateAPIView, ShiftListFilteredAPIView, ShiftListUnpublishedAPIView
 
 urlpatterns = patterns('',
 
@@ -40,6 +40,7 @@ urlpatterns = patterns('',
     # v1 telephony endpoints with twilio
     url(r'^api/v1/t/', include('apps.phone.urls', namespace='phone'), name='twilio'),
     # v1 api
+    url(r'^api/v1/shifts/unpublished/$', ShiftListUnpublishedAPIView.as_view(), name='shift_list_unpublished_api'),
     url(r'^api/v1/shifts/filtered/$', ShiftListFilteredAPIView.as_view(), name='shift_list_filtered_api'),
     url(r'^api/v1/shifts/$', ShiftListCreateUpdateAPIView.as_view(), name='shift_list_create_api'),
 

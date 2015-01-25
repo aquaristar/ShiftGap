@@ -48,3 +48,8 @@ class Shift(OrganizationOwned):
         # Don't allow a start time to occur after an end time
         if self.start_time > self.end_time:
             raise ValidationError(_('Start time cannot occur after end time.'))
+
+    def publish(self):
+        # more good stuff will happen here eventually
+        self.published = True
+        self.save()

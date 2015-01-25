@@ -10,4 +10,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         twenty_four_hour_reminder.delay()
         ninety_minute_reminder.delay()
-        self.stdout.write('Successfuly processed reminders')
+        # check for unpublished shifts that occur within the next 24 hours
+        # alert all admins ONCE
+        self.stdout.write('Successfuly processed reminders.')

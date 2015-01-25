@@ -32,3 +32,8 @@ class ShiftForm(forms.ModelForm):
     class Meta:
         model = Shift
         fields = ('start_time', 'end_time', 'user', 'schedule', 'organization')
+
+
+class PublishShiftDateRangeForm(forms.Form):
+    from_date = forms.CharField(max_length=10, required=True, widget=forms.HiddenInput())
+    to_date = forms.CharField(max_length=10, required=True, widget=forms.HiddenInput())

@@ -28,6 +28,10 @@ def notify_imminent_shift_add():
 
 @app.task
 def new_shift_reminder(shift_id):
+    # if shift is NEW
+    # and within 36 hours
+    # we notify the user IMMEDIATELY
+    # otherwise normal notifications will suffice
     shift = Shift.objects.get(pk=shift_id)
     if shift.user.userprofile.phone_reminders:
         if shift.user.userprofile.phone_number:
@@ -49,7 +53,7 @@ def twenty_four_hour_reminder():
     # if the start time is < 24 hours away AND twenty_four_hour_reminder_sent is false
     for shift in shifts:
         # if a reminder hasn't already been sent
-        if not shift.twenty_four_hour_reminder_sent:
+        if not shift.twenty_four_hour_reminder_sent and shift.published:
             # if a users phone reminders are enabled
             with transaction.atomic():
                 if shift.user.userprofile.phone_reminders and shift.user.userprofile.phone_confirmed:
@@ -75,7 +79,7 @@ def ninety_minute_reminder():
     # if the start time is < 95 minutes away AND ninety_minute_reminder_sent is false
     for shift in shifts:
         # if a reminder hasn't already been sent
-        if not shift.ninety_minute_reminder_sent:
+        if not shift.ninety_minute_reminder_sent and shift.published:
             # if a users phone reminders are enabled
             with transaction.atomic():
                 if shift.user.userprofile.phone_reminders and shift.user.userprofile.phone_confirmed:

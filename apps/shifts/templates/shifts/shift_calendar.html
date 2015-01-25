@@ -26,8 +26,17 @@
             </div>
         </div>
     </div>
-
-
+    {% if user.userprofile.admin_or_manager %}
+    <div class="row">
+    <div class="col-md-12">
+        <h5>{% trans "Admin Options" %}</h5>
+        <a href="{% url 'shifts:shift_publish_range' %}"><button class="btn btn-info">{% trans "Publish Shifts by Range" %}</button></a>
+    </div>
+    <div class="row">
+        <span style="padding-bottom: 10px; padding-top: 10px"></span>
+    </div>
+    </div>
+    {% endif %}
 
     <!-- Shift Detail Modal -->
     <div class="modal fade" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -41,9 +50,12 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" id="saveShiftDetail" class="btn btn-primary">Save changes</button>
+                    {% if user.userprofile.admin_or_manager %}
+                    <button id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
+                    {% endif %}
+                    <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
+                    <button type="button" id="saveShiftDetail" class="btn btn-primary">{% trans "Save changes" %}</button>
                 </div>
             </div>
         </div>
@@ -120,6 +132,23 @@
                 }
             };
 
+            var source_unpublished = {};
+            {% if user.userprofile.admin_or_manager %}
+
+                source_unpublished = {
+                    url: '{% url 'shift_list_unpublished_api' %}?format=json',
+                    type: 'GET',
+                    color: 'orange',
+                    error: function () {
+                        alert('There was an error fetching unpublished events. Please contact support.')
+                    }
+                };
+
+            {% endif %}
+
+
+
+
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
                     $('#quickCreateModal').modal('show');
@@ -139,7 +168,8 @@
                     currentEvent = calEvent;
                 },
                 eventSources: [
-                    source
+                    source,
+                    source_unpublished
                 ],
                 displayEventEnd: true,
                 header: {
@@ -220,7 +250,6 @@
                         source: engine.ttAdapter()
                     });
 
-
             $('#checkMe').change(function () {
                 if(this.checked) {
                     // uncheck everyone
@@ -228,7 +257,7 @@
                     // add source for just me
                     $('#calendar').fullCalendar('addEventSource', source_filtered);
                     $('#calendar').fullCalendar('removeEventSource', source);
-
+                    $('#calendar').fullCalendar('removeEventSource', source_unpublished);
                 }
             });
             $('#checkEveryone').change(function () {
@@ -237,12 +266,10 @@
                     $('#checkMe').attr('checked', false);
                     // add regular source back
                     $('#calendar').fullCalendar('addEventSource', source);
+                    $('#calendar').fullCalendar('addEventSource', source_unpublished);
                     $('#calendar').fullCalendar('removeEventSource', source_filtered);
-
                 }
-
             });
-
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
             $('#shiftDetailModalContent').empty();
@@ -264,5 +291,4 @@
                     $('#employeeId').val(datum.id);
                 });
     </script>
-
 {% endblock tail%}

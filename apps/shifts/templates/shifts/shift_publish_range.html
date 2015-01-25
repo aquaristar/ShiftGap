@@ -1,0 +1,51 @@
+{% extends "__base.html" %}
+{% load i18n %}
+{% load static from staticfiles %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}"
+          xmlns="http://www.w3.org/1999/html">
+{% endblock head %}
+
+{% block content %}
+    <hr>
+    <div class="row">
+
+        <form class="form-group" method="post" action=".">{% csrf_token %}
+            <hr>
+            <div class="row">
+                <div id="daterange">
+                    <i class="fa fa-calendar fa-lg"></i>
+                    {% trans "Select Date Range" %}<b class="caret"></b>
+                </div>
+            </div>
+            {{ form.as_p }}
+            <input type="submit" name="{% trans "Submit" %}">
+        </form>
+    </div>
+
+{% endblock content %}
+
+{% block tail%}
+
+    <script src="{% static "bower_components/bootstrap-daterangepicker/daterangepicker.js" %}"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#daterange').daterangepicker(
+                    {
+                        format: 'YYYY-MM-DD',
+                        startDate: moment(),
+                        endDate: moment().add('days', 7)
+                    },
+                    function(start, end, label) {
+                        console.log('start is ', start);
+                        console.log('end is ', end);
+
+                        $('#id_from_date').val(start.format('YYYY-MM-DD'));
+                        $('#id_to_date').val(end.format('YYYY-MM-DD'));
+
+                    }
+            );
+        });
+    </script>
+{% endblock tail %}

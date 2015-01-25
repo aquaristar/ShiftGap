@@ -10,7 +10,7 @@ def shift_saved(sender, **kwargs):
     # is it a new shift
     if kwargs.get('created'):
         print('This is a new shift.')
-        new_shift_reminder.delay(shift_id=kwargs['instance'].pk)
+        # new_shift_reminder.delay(shift_id=kwargs['instance'].pk)
     else:
         # Did the times change?
         # Did the user change?

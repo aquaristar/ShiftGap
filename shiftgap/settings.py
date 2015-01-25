@@ -247,7 +247,8 @@ LOGGING = {
 }
 
 # run celery tasks synchronously during development
-CELERY_ALWAYS_EAGER = True if DEBUG else False
+# CELERY_ALWAYS_EAGER = True if DEBUG else False
+CELERY_ALWAYS_EAGER = True
 
 REDIS_URL = environ.get('REDISCLOUD_URL', 'redis://localhost')
 BROKER_URL = REDIS_URL
