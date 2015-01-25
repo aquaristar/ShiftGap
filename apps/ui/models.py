@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import RegexValidator
 from django.utils.translation import ugettext_lazy as _
 
 from apps.organizations.models import Organization
@@ -19,7 +20,10 @@ class UserProfile(models.Model):
     user = models.OneToOneField('auth.User')
     organization = models.ForeignKey(Organization)
     timezone = TimeZoneField()
-    phone_number = models.CharField(max_length=25, blank=True, verbose_name=_('Full number including country code, +1'))
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
+                                 message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+    phone_number = models.CharField(max_length=15, blank=True, validators=[phone_regex],
+                                    verbose_name=_('Full number including country code and +'))
     phone_confirmation_code = models.CharField(max_length=5, blank=True)
     phone_reminders = models.BooleanField(default=True)
     phone_confirmed = models.BooleanField(default=False)
