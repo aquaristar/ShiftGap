@@ -27,15 +27,15 @@
         </div>
     </div>
     {% if user.userprofile.admin_or_manager %}
-    <div class="row">
-    <div class="col-md-12">
-        <h5>{% trans "Admin Options" %}</h5>
-        <a href="{% url 'shifts:shift_publish_range' %}"><button class="btn btn-info">{% trans "Publish Shifts by Range" %}</button></a>
-    </div>
-    <div class="row">
-        <span style="padding-bottom: 10px; padding-top: 10px"></span>
-    </div>
-    </div>
+        <div class="row">
+            <div class="col-md-12">
+                <h5>{% trans "Admin Options" %}</h5>
+                <a href="{% url 'shifts:shift_publish_range' %}"><button class="btn btn-info">{% trans "Publish Shifts by Range" %}</button></a>
+            </div>
+            <div class="row">
+                <span style="padding-bottom: 10px; padding-top: 10px"></span>
+            </div>
+        </div>
     {% endif %}
 
     <!-- Shift Detail Modal -->
@@ -51,7 +51,7 @@
                 </div>
                 <div class="modal-footer">
                     {% if user.userprofile.admin_or_manager %}
-                    <button id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
+                        <button id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
                     {% endif %}
                     <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
@@ -71,18 +71,29 @@
                 </div>
                 <div id="quickCreateModalContent" class="modal-body">
 
-                    <hr>
+
                     <div class="form-group">
                         <p><label for="employeeSelector">{% trans "Employee" %}:</label>
-                            <input id="employeeSelector" type="text" name="employee">
+                            <input id="employeeSelector" type="text" name="employee" placeholder="{% trans "Start typing first name" %}">
                             <input type="hidden" id="employeeId">
                         </p>
 
-                        <p><label for="timeText">{% trans "Time Text: " %}</label>
-                            <input type="text" id="timeText"></p>
+                        <p><label for="timeText">{% trans "Time: " %}</label>
+                            <input type="text" id="timeText" placeholder="{% trans "e.g. 9am - 5pm / 9-17" %}"></p>
 
                         <p><input id="quickCreateStartTime" type="hidden" name="start">
                             <input id="quickCreateEndTime" type="hidden" name="end"></p>
+                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                            {% trans "Show me How" %}
+                        </button>
+                        <div class="collapse" id="collapseExample" aria-expanded="false">
+                            <div class="well">
+                                {% trans "Start typing the persons first name and click on their name with your mouse." %}
+                                {% trans "For rapid entry, once their name is selected, press Tab twice to go to the next field." %}<br /><br />
+                                {% trans "In the time field you can enter any valid work time, for example: 9am to 5pm, 9a - 5p or 9-17." %}
+                                {% trans "All are valid entries. You can schedule 10pm - 2am and it will automatically adjust the ending date." %}
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -92,6 +103,8 @@
             </div>
         </div>
     </div>
+
+
 
 {% endblock content %}
 
@@ -179,6 +192,9 @@
                 }
             });
             $('#saveQuickShift').click(function () {
+                var times = shorthand_to_datetimes(dayCreate, $('#timeText').val());
+                $('#quickCreateStartTime').val(times[0]);
+                $('#quickCreateEndTime').val(times[1]);
                 $.ajax({
                     type: "POST",
                     url: "{% url 'shift_list_create_api' %}",
@@ -225,9 +241,7 @@
             $('#timeText').keydown(function (e) {
                 if (e.which == 13) {
                     e.preventDefault();
-                    var times = shorthand_to_datetimes(dayCreate, $(this).val());
-                    $('#quickCreateStartTime').val(times[0]);
-                    $('#quickCreateEndTime').val(times[1]);
+
                     $('#saveQuickShift').trigger('click');
                 }
             });
