@@ -35,11 +35,10 @@
                 <h5>{% trans "Admin Options" %}</h5>
                 <button id="daterangepub" class="btn btn-info">{% trans "Publish Shifts by Range" %}</button>
                 <button id="daterangeunpub" class="btn btn-warning">{% trans "Unpublish Shifts by Range" %}</button>
-{#                <button id="daterangepub" class="btn btn-primary">Date Range</button>#}
+                {#                <button id="daterangepub" class="btn btn-primary">Date Range</button>#}
                 <form id="daterangeform" class="hidden" method="post">{% csrf_token %}
                     <input id="id_from_date" maxlength="10" name="from_date" type="hidden" /><input id="id_to_date" maxlength="10" name="to_date" type="hidden" />
                     <input id="rangesubmit" type="submit" />
-
                 </form>
             </div>
             <div class="row">
@@ -63,6 +62,7 @@
                 <div class="modal-footer">
                     {% if user.userprofile.admin_or_manager %}
                         <button id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
+                        <button id="unpublishShiftButton" type="button" class="btn btn-warning" data-dismiss="modal">{% trans "Un-Publish" %}</button>
                     {% endif %}
                     <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
@@ -185,6 +185,7 @@
                     $('#shiftDetailModal').modal('show');
                     $('#shiftDetailModalContent').append("<h2>User: " + calEvent.title + "</h2>" +
                     "<br /><br /><h3>" + calEvent.start.format('h:mm a') + " -- " + calEvent.end.format('h:mm a') + "</h3>");
+                    console.log(calEvent);
 
                     currentEvent = calEvent;
                 },
@@ -343,6 +344,49 @@
                         }
                     }
             );
+            $('#publishShiftButton').click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'shifts:shift_pubunpub' %}",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        pk: currentEvent.id,
+                        pub: "True",
+                        success: function () {
+                            // display something to the user
+                            setTimeout(function () {
+                                $('#calendar').fullCalendar('refetchEvents');
+                            }, 200);
+                        }
+                    }
+                }).fail(function (err) {
+                    alert('Shift deletion failed!');
+                    $('#calendar').fullCalendar('refetchEvents');
+                });
+                $('#shiftDetailModal').modal('hide');
+            });
+
+            $('#unpublishShiftButton').click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'shifts:shift_pubunpub' %}",
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        pk: currentEvent.id,
+                        pub: "False",
+                        success: function () {
+                            // display something to the user
+                            setTimeout(function () {
+                                $('#calendar').fullCalendar('refetchEvents');
+                            }, 200);
+                        }
+                    }
+                }).fail(function (err) {
+                    alert('Shift deletion failed!');
+                    $('#calendar').fullCalendar('refetchEvents');
+                });
+                $('#shiftDetailModal').modal('hide');
+            });
 
             // end of ready()
         });

@@ -14,6 +14,7 @@ urlpatterns = \
              url(r'^me/$', ShiftListForUserView.as_view(), name='shift_list_user'),
              url(r'^publish/$', ShiftPublishFormView.as_view(), name='shift_publish_range'),
              url(r'^unpublish/$', ShiftUnpublishFormView.as_view(), name='shift_unpublish_range'),
+             url(r'^pubunpub/$', 'apps.shifts.views.publish_unpublish_single_shift', name='shift_pubunpub'),
              # FIXME edit view doesn't load initial data
              url(r'^shift/edit/(?P<pk>\d+)/$', ShiftUpdateView.as_view(), name='shift_update'),
              url(r'^calendar/delete/$', 'apps.shifts.views.delete_shift_from_calendar', name='shift_delete_calendar'),

@@ -36,7 +36,11 @@
                         {% for shift in d.list %}
                             <tr>
                                 <td>{{ shift.start_time|time }}  -  {{ shift.end_time|time }}</td>
-                                <td>{{ shift.user }}</td>
+                                {% if shift.user.first_name %}
+                                    <td>{{ shift.user.first_name }} {{ shift.user.last_name }}</td>
+                                {% else %}
+                                    <td>{{ shift.user }}</td>
+                                {% endif %}
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -53,7 +57,6 @@
 {% endlocaltime %}
 
 {% block tail%}
-
     <script src="{% static "bower_components/bootstrap-daterangepicker/daterangepicker.js" %}"></script>
     <script type="text/javascript">
         $(document).ready(function() {

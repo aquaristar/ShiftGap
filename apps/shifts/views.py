@@ -148,6 +148,8 @@ def date_range_to_datetime_helper(start_date, end_date, timezone):
     end = timezone.localize(end)
     end = arrow.get(end)
     end = end.ceil('day').datetime
+    # FIXME add 3 hours to end to approximate shifts that actually end the next day but
+    # for most accounting purposes are meant to be the same day
     return start, end
 
 
@@ -211,9 +213,15 @@ def delete_shift_from_calendar(request):
 @login_required
 @require_POST
 @user_passes_test(admin_or_manager)
-def publish_single_shift(request):
+def publish_unpublish_single_shift(request):
     pk = request.POST['pk']
-    pub = request.POST['pub']
+    # pub = True if request.POST['pub'] == 'True' else False
+    pub = request.POST.get('pub', None)
+    pub = pub.lower()
+    if pub == 'true':
+        pub = True
+    else:
+        pub = False
     try:
         shift = Shift.objects.get(pk=pk, organization=request.user.userprofile.organization)
     except Shift.DoesNotExist:
