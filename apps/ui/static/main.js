@@ -1,11 +1,14 @@
-var min_plausible_minutes = 30;
+var min_plausible_minutes = 15;
 var max_plausible_hours = 20;
+// we should make these variables so that they can be altered on a per
+// user basis in some industries shifts can exceed 20 hours so we need
+// to be able to change it easily
 
 // output helper function:
-//function out(s) {
-//    $("#output").append(s);
-//    console.log(s);
-//}
+// function out(s) {
+//     $("#output").append(s);
+//     console.log(s);
+// }
 
 // Helper function, generating a time String of formar "HH:mm"
 // from an input array `time` of two int elements: [hours, minutes]:
@@ -165,16 +168,23 @@ function shorthand_to_datetimes(date, timeString) {
             range[1][0] -= 12;
             day = date.add(1, 'day').format('YYYY-MM-DD');
         }
-
         // End time won’t fit into the same day anymore.
         // We interpret it as time on the following day:
+        //alert("h1 = " + h1 + " and h2 = " + h2);
         if (h2 > 23 && h2 < 36) {
-            h2 -= 12;
-            range[1][0] -= 12;
+            if (h2 > 24) {
+                h2 -= 12;
+                range[1][0] -= 12;
+            }
+            else {
+                h2 -= 24;
+                range[1][0] -= 24;
+            }
             day = date.add(1, 'day').format('YYYY-MM-DD');
         }
+        //alert("h1 = " + h1 + " and h2 = " + h2);
 
-         // Checking if any hour is >23 or minute >59:
+        // Checking if any hour is >23 or minute >59:
         if ((h1 > 23) || (h2 > 23) || (m1 > 59) || (m2 > 59))
             throw("Invalid time: »" +
                   range[0] + "« or " +
@@ -185,12 +195,15 @@ function shorthand_to_datetimes(date, timeString) {
         var e = moment(day + " " + hoursminsToString(range[1]));
 
         //alert(e.diff(s, 'minutes'));
-
+        /*
+		// uncomment this block to limit max and min shifts to
+		// what is set in min_plausible_minutes and max_plausible_hours
+		// to prevent overly long or overly short shifts
         if ((e.diff(s, 'minutes') < min_plausible_minutes) ||
             (e.diff(s, 'hours') > max_plausible_hours))
             throw("Not plausible: " +
                   s.format() + " to " + e.format());
-
+        */
     }
     catch (err) {
         console.log(err);
@@ -200,11 +213,17 @@ function shorthand_to_datetimes(date, timeString) {
     return [s.format(), e.format()];
 }
 
-function test(timeString) {
-    var times = shorthand_to_datetimes(moment('2004-03-26'), timeString);
+function test(timeString, expectedStart, expectedEnd) {
+    var times = shorthand_to_datetimes(moment(td1), timeString);
     
-    if (typeof times == 'undefined') {
-        out("<span style='color:red;'>Bad input: »" + timeString + "«</span>");
+    if ((typeof times == 'undefined') ||
+        (times[0] != expectedStart.format()) ||
+        (times[1] != expectedEnd.format()))
+    {
+        out("<span style='color:red;'>Bad input: »" + timeString + "« " +
+            "did not match<br />" +
+            expectedStart.format() + " to " +
+            expectedEnd.format() + "</span>");
     }
     else {
         out("" + timeString + ' => ');
@@ -214,33 +233,46 @@ function test(timeString) {
     out("<br /><br />");
 }
 
+// Helper: ptd => Prepare Test Date
+function ptd (testDay, time) {
+    moment(testDay + "T" + time);
+}
+
+var td1 = "2004-03-26"; // Test Date one
+var td2 = "2004-03-27"; // Test Date one
 // provided test cases:
-///*
-//test("9-17"); // -> output [date + "09:00:00", date + "17:00:00"]
-//test("9a-5p"); // -> output [date + "09:00:00", date + "17:00:00"]
-//test("11am-1pm"); // -> output [date + "11:00:00, date + "13:00:00"]
-//test("9:45-13:45"); // -> output [date + "09:45:00, date + "13:45:00"]
-//test("9:45a-2p"); // -> outout [date + "09:45:00, date + "14:00:00"]
-//test("1215-235"); // -> output [date + "12:15:00, date + "14:35:00"]
-//test("1030am-4pm"); // -> output [date + "10:30:00, date + "16:00:00]
-//test("hello"); // -> output -1
-//test("1030am-4"); // -> output -1 => Why? We can parse this! :-)
-//test("10:00am-4"); // output [date + "10:30:00, date + "16:00:00]
-//test("10 am - 5 pm");
-//test("10a - 5p");
-//test("10 am to 5 pm");
-////*/
-/////*
-//out("=========================================<br /><br />");
-//test("10pm to 2am"); // output [date + "10:30:00, (date + 1) + "02:00:00]
-//test("5pm to 12am"); // output [date + "17:00:00, (date + 1) + "00:00:00]
-//test("6pm to 12"); // output [date + "18:00:00, (date + 1) + "00:00:00]
-//test("10am to 12"); // output [date + "18:00:00, (date) + "12:00:00]
-//test("2000-0230"); // output [date + "20:00:00, (date + 1) + "02:30:00]
-//test("19:45 - 300"); // output [date + "19:45:00, (date + 1) + "03:00:00]
-//test("11 p to 1 a"); // output [date + "23:00:00, (date + 1) + "01:00:00]
-//test("2300 - 0000"); // output [date + "23:00:00, (date + 1) + "00:00:00]
-//test("1pm to 1:15pm"); // output Exception - shorter than the min_plausible_minutes
-//test("1am to 11pm"); // output Exception - greater than max_plausible_hours
-//test("11pm-10pm");
-// */
+//test("9-17", moment("2004-03-26T09:00:00+01:00"), moment("2004-03-26T17:00:00"));
+//test("9a-5p", moment("2004-03-26T09:00:00+01:00"), moment("2004-03-26T17:00:00"));
+// test("9a-5p", ptd(td1, "09:00:00+01:00"), ptd(td1, "17:00:00"));
+/*
+test("9-17"); // -> output [date + "09:00:00", date + "17:00:00"]
+test("9a-5p"); // -> output [date + "09:00:00", date + "17:00:00"]
+test("11am-1pm"); // -> output [date + "11:00:00, date + "13:00:00"]
+test("9:45-13:45"); // -> output [date + "09:45:00, date + "13:45:00"]
+test("9:45a-2p"); // -> outout [date + "09:45:00, date + "14:00:00"]
+test("1215-235"); // -> output [date + "12:15:00, date + "14:35:00"]
+test("1030am-4pm"); // -> output [date + "10:30:00, date + "16:00:00]
+test("hello"); // -> output -1
+test("1030am-4"); // -> output -1 => Why? We can parse this! :-)
+test("10:00am-4"); // output [date + "10:30:00, date + "16:00:00]
+test("10 am - 5 pm");
+test("10a - 5p");
+test("10 am to 5 pm");
+
+
+out("=========================================<br /><br />");
+test("10pm to 2am"); // output [date + "10:30:00, (date + 1) + "02:00:00]
+test("5pm to 12am"); // output [date + "17:00:00, (date + 1) + "00:00:00]
+test("6pm to 12"); // output [date + "18:00:00, (date + 1) + "00:00:00]
+test("10am to 12"); // output [date + "18:00:00, (date) + "12:00:00]
+test("2000-0230"); // output [date + "20:00:00, (date + 1) + "02:30:00]
+test("19:45 - 300"); // output [date + "19:45:00, (date + 1) + "03:00:00]
+test("11 p to 1 a"); // output [date + "23:00:00, (date + 1) + "01:00:00]
+test("2300 - 0000"); // output [date + "23:00:00, (date + 1) + "00:00:00]
+test("1pm to 1:15pm"); // output Exception - shorter than the min_plausible_minutes
+test("1am to 11pm"); // output Exception - greater than max_plausible_hours
+test("11pm-10pm");
+
+test("6pm to 12");
+test("11pm-10pm");
+*/
