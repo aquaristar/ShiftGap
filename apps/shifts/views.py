@@ -1,4 +1,5 @@
 import json
+from functools import wraps
 
 from django.views.generic import ListView, CreateView, UpdateView, TemplateView, FormView
 from django.http.response import HttpResponse, Http404, HttpResponseRedirect
@@ -155,10 +156,8 @@ class ShiftPublishFormView(UserProfileRequiredMixin, AdminOrManagerRequiredMixin
     form_class = PublishShiftDateRangeForm
 
     def form_valid(self, form):
-        print(form.cleaned_data['from_date'])
-        print(form.cleaned_data['to_date'])
-
-        start_datetime, end_datetime = date_range_to_datetime_helper(start_date=form.cleaned_data['from_date'],
+        start_datetime, end_datetime =\
+            date_range_to_datetime_helper(start_date=form.cleaned_data['from_date'],
                                                                      end_date=form.cleaned_data['to_date'],
                                                                      timezone=self.request.user.userprofile.timezone)
 
@@ -171,8 +170,33 @@ class ShiftPublishFormView(UserProfileRequiredMixin, AdminOrManagerRequiredMixin
         return HttpResponseRedirect(reverse('shifts:shift_calendar'))
 
 
+class ShiftUnpublishFormView(ShiftPublishFormView):
+
+    def form_valid(self, form):
+        start_datetime, end_datetime =\
+            date_range_to_datetime_helper(start_date=form.cleaned_data['from_date'],
+                                                                     end_date=form.cleaned_data['to_date'],
+                                                                     timezone=self.request.user.userprofile.timezone)
+
+        shifts = Shift.objects.filter(start_time__gte=start_datetime, end_time__lte=end_datetime,
+                                      organization=self.request.user.userprofile.organization,
+                                      published=True)
+        for shift in shifts:
+            shift.unpublish()
+        messages.info(self.request, "You just unpublished %d shifts" % int(shifts.count()))
+        return HttpResponseRedirect(reverse('shifts:shift_calendar'))
+
+
+# FIXME: move to core module
+from django.contrib.auth.decorators import user_passes_test
+
+
+def admin_or_manager(user):
+    return True if user.userprofile.admin_or_manager else False
+
 @login_required
 @require_POST
+@user_passes_test(admin_or_manager)
 def delete_shift_from_calendar(request):
     pk = request.POST['pk']
     try:
@@ -181,6 +205,20 @@ def delete_shift_from_calendar(request):
         raise Http404()
 
     shift.delete()
+    response = {"response": "OK"}
+    return HttpResponse(json.dumps(response))
+
+@login_required
+@require_POST
+@user_passes_test(admin_or_manager)
+def publish_single_shift(request):
+    pk = request.POST['pk']
+    pub = request.POST['pub']
+    try:
+        shift = Shift.objects.get(pk=pk, organization=request.user.userprofile.organization)
+    except Shift.DoesNotExist:
+        raise Http404()
+    shift.publish() if pub else shift.unpublish()
     response = {"response": "OK"}
     return HttpResponse(json.dumps(response))
 
@@ -228,6 +266,8 @@ class ShiftListCreateUpdateAPIView(ShiftListAPIMixin, ListCreateAPIView):
             return super(ShiftListCreateUpdateAPIView, self).create(request, *args, **kwargs)
 
 
+
+
 class ShiftListFilteredAPIView(ShiftListAPIMixin, ListAPIView):
 
     def get_queryset(self):
@@ -254,29 +294,29 @@ class ShiftListUnpublishedAPIView(ShiftListAPIMixin, ListAPIView):
         return queryset
 
 
-# def spawn_worker(request):
-#     import sys
-#     import subprocess
-#     subprocess.Popen(["celery", "worker", "--app=shiftgap.celery"])
-#     return HttpResponseRedirect('/')
-# This is just some test code to see how heroku would react with
-# requests that are > 30 seconds.
-# import time
-# from django.http import StreamingHttpResponse
-#
-# def something_to_check():
-#     pass
-#
-# def stream_response(request):
-#     something_to_check = True
-#     resp = StreamingHttpResponse(stream_response_generator())
-#     something_to_check = False
-#     return resp
-#
-# def stream_response_generator():
-#     for x in range(1, 300):
-#         if something_to_check():
-#             yield '{} <br /> {}'.format(x, ' '*1)
-#         else:
-#             return
-#         time.sleep(1)
+        # def spawn_worker(request):
+        #     import sys
+        #     import subprocess
+        #     subprocess.Popen(["celery", "worker", "--app=shiftgap.celery"])
+        #     return HttpResponseRedirect('/')
+        # This is just some test code to see how heroku would react with
+        # requests that are > 30 seconds.
+        # import time
+        # from django.http import StreamingHttpResponse
+        #
+        # def something_to_check():
+        #     pass
+        #
+        # def stream_response(request):
+        #     something_to_check = True
+        #     resp = StreamingHttpResponse(stream_response_generator())
+        #     something_to_check = False
+        #     return resp
+        #
+        # def stream_response_generator():
+        #     for x in range(1, 300):
+        #         if something_to_check():
+        #             yield '{} <br /> {}'.format(x, ' '*1)
+        #         else:
+        #             return
+        #         time.sleep(1)

@@ -3,8 +3,7 @@
 {% load static from staticfiles %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}"
-          xmlns="http://www.w3.org/1999/html">
+    <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}">
 {% endblock head %}
 
 {% block content %}
@@ -38,12 +37,8 @@
                         endDate: moment().add('days', 7)
                     },
                     function(start, end, label) {
-                        console.log('start is ', start);
-                        console.log('end is ', end);
-
                         $('#id_from_date').val(start.format('YYYY-MM-DD'));
                         $('#id_to_date').val(end.format('YYYY-MM-DD'));
-
                     }
             );
         });

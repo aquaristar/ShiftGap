@@ -53,3 +53,7 @@ class Shift(OrganizationOwned):
         # more good stuff will happen here eventually
         self.published = True
         self.save()
+
+    def unpublish(self):
+        self.published = False
+        self.save()

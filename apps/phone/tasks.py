@@ -22,7 +22,7 @@ def send_user_phone_confirmation_code(user_id):
             up.phone_confirmation_code = code
             up.save()
             # send the code to the phone number
-            message = _('Your message activation code is %s') % str(code)
+            message = _('Your ShiftGap activation code is %s') % str(code)
             msg = twilio_client.messages.create(
                 body=message,
                 to=up.phone_number,

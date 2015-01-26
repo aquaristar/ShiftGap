@@ -5,6 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'bower_components/fullcalendar/dist/fullcalendar.min.css' %}">
     <link rel="stylesheet" href="{% static "typeahead.css" %}">
+    <link rel="stylesheet" href="{% static "bower_components/bootstrap-daterangepicker/daterangepicker-bs3.css" %}">
 {% endblock head %}
 
 {% block content %}
@@ -26,17 +27,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Admin or Manager Options panel here -->
     {% if user.userprofile.admin_or_manager %}
-        <div class="row">
+        <div class="row" style="margin-bottom: 20px;">
             <div class="col-md-12">
                 <h5>{% trans "Admin Options" %}</h5>
-                <a href="{% url 'shifts:shift_publish_range' %}"><button class="btn btn-info">{% trans "Publish Shifts by Range" %}</button></a>
+                <button id="daterangepub" class="btn btn-info">{% trans "Publish Shifts by Range" %}</button>
+                <button id="daterangeunpub" class="btn btn-warning">{% trans "Unpublish Shifts by Range" %}</button>
+{#                <button id="daterangepub" class="btn btn-primary">Date Range</button>#}
+                <form id="daterangeform" class="hidden" method="post">{% csrf_token %}
+                    <input id="id_from_date" maxlength="10" name="from_date" type="hidden" /><input id="id_to_date" maxlength="10" name="to_date" type="hidden" />
+                    <input id="rangesubmit" type="submit" />
+
+                </form>
             </div>
             <div class="row">
                 <span style="padding-bottom: 10px; padding-top: 10px"></span>
             </div>
         </div>
     {% endif %}
+    <!-- end Admin/Manager options -->
 
     <!-- Shift Detail Modal -->
     <div class="modal fade" id="shiftDetailModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -110,6 +121,7 @@
 
 {% block tail %}
     <script src="{% static 'bower_components/typeahead.js/dist/typeahead.bundle.min.js' %}"></script>
+    <script src="{% static "bower_components/bootstrap-daterangepicker/daterangepicker.js" %}"></script>
     <script>
         var employees = {{ employees|safe }};
         var default_schedule = {{ default_schedule|safe }};
@@ -158,10 +170,6 @@
                 };
 
             {% endif %}
-
-
-
-
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
                     $('#quickCreateModal').modal('show');
@@ -284,6 +292,59 @@
                     $('#calendar').fullCalendar('removeEventSource', source_filtered);
                 }
             });
+
+            $('#daterangepub').daterangepicker(
+                    {
+                        format: 'YYYY-MM-DD',
+                        startDate: moment(),
+                        endDate: moment().add('days', 7)
+                    },
+                    function(start, end, label) {
+                        console.log('start is ', start);
+                        console.log('end is ', end);
+
+                        var r = confirm('Are you sure you want to publish all shifts from ' + start.format('YYYY-MM-DD')
+                        + ' to ' +  end.format('YYYY-MM-DD') + '?');
+
+                        $('#id_from_date').val(start.format('YYYY-MM-DD'));
+                        $('#id_to_date').val(end.format('YYYY-MM-DD'));
+
+                        if (r == true) {
+                            // perform post
+                            $('#daterangeform').attr('action', "{% url 'shifts:shift_publish_range' %}");
+                            $('#rangesubmit').trigger('click');
+                        } else {
+
+                        }
+                    }
+            );
+            $('#daterangeunpub').daterangepicker(
+                    {
+                        format: 'YYYY-MM-DD',
+                        startDate: moment(),
+                        endDate: moment().add('days', 7)
+                    },
+                    function(start, end, label) {
+                        console.log('start is ', start);
+                        console.log('end is ', end);
+
+                        var r = confirm('Are you sure you want to un-publish all shifts from ' + start.format('YYYY-MM-DD')
+                        + ' to ' +  end.format('YYYY-MM-DD') + '?');
+
+                        $('#id_from_date').val(start.format('YYYY-MM-DD'));
+                        $('#id_to_date').val(end.format('YYYY-MM-DD'));
+
+                        if (r == true) {
+                            // perform post
+                            $('#daterangeform').attr('action', "{% url 'shifts:shift_unpublish_range' %}");
+                            $('#rangesubmit').trigger('click');
+                        } else {
+
+                        }
+                    }
+            );
+
+            // end of ready()
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
             $('#shiftDetailModalContent').empty();
