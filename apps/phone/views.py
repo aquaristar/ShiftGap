@@ -62,13 +62,41 @@ def record_incoming_sms(request):
             r.message(msg=msg)
 
     if message == 'next':
-        now = arrow.utcnow().datetime
-        shifts = Shift.objects.filter(user__userprofile__phone_number=request.POST['From'],
-                                      start_time__gte=now).order_by('start_time')
-        if shifts:
-            start = shifts[0].start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
-            msg = _('Your next shift is at %s') % start
-            r.message(msg=msg)
+        if UserProfile.objects.filter(phone_number=request.POST['From']).exists():
+            now = arrow.utcnow().datetime
+            shifts = Shift.objects.filter(user__userprofile__phone_number=request.POST['From'],
+                                          start_time__gte=now, published=True).order_by('start_time')
+            if shifts:
+                start = shifts[0].start_time.astimezone(shifts[0].user.userprofile.timezone)
+                start = start.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
+                msg = _('Your next shift is at %s') % start
+                r.message(msg=msg)
+            else:
+                # if userprofile exists send they don't have any incoming shifts
+                msg = _('It doesn\'t look like you have any upcoming shifts.')
+                r.message(msg=msg)
+    if message == 'next2':
+        if UserProfile.objects.filter(phone_number=request.POST['From']).exists():
+            now = arrow.utcnow().datetime
+            shifts = Shift.objects.filter(user__userprofile__phone_number=request.POST['From'],
+                                          start_time__gte=now, published=True).order_by('start_time')
+            if shifts.exists():
+                shift1 = shifts[0].start_time.astimezone(shifts[0].user.userprofile.timezone)
+                shift1 = shift1.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
+                shift2 = None
+                if 1 in shifts:
+                    shift2 = shifts[1].start_time.astimezone(shifts[1].user.userprofile.timezone)
+                    shift2 = shift2.strftime('%l:%M%p on %b %d')
+                msg = _('Your next two shifts are: %s and %s') % (shift1, str(shift2))
+                r.message(msg=msg)
+            else:
+                # if userprofile exists send they don't have any incoming shifts
+                msg = _('It doesn\'t look like you have any upcoming shifts.')
+                r.message(msg=msg)
+
+    if not UserProfile.objects.filter(phone_number=request.POST['From']).exists():
+        msg = _('Sorry but your number isn\'t recognized. If you think this is a mistake contact your manager.')
+        r.message(msg=msg)
     return r
 
 
