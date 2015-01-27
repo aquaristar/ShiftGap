@@ -8,6 +8,7 @@ from twilio import twiml
 from django_twilio.decorators import twilio_view
 
 from apps.organizations.views import UserProfileRequiredMixin
+from apps.shifts.models import Shift
 from apps.ui.models import UserProfile
 
 
@@ -57,6 +58,13 @@ def record_incoming_sms(request):
         if ups:
             name = ups[0].user.first_name
             msg = _('Hi %s, your number is now confirmed!') % name
+            r.message(msg=msg)
+
+    if message == 'next':
+        shifts = Shift.objects.filter(user__userprofile__phone=request.POST['From']).order_by('start_time')
+        if shifts:
+            start = shifts[0].start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
+            msg = _('Your next shift is at %s') % start
             r.message(msg=msg)
     return r
 
