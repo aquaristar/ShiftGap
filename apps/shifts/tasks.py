@@ -11,11 +11,6 @@ from .models import Shift
 
 
 @app.task
-def echo():
-    print('Hello world....')
-
-
-@app.task
 def notify_employees_new_schedule_posted():
     pass
 
@@ -29,14 +24,16 @@ def notify_imminent_shift_add():
 @app.task
 def new_shift_reminder(shift_id):
     # if shift is NEW
+    # and shift is published
     # and within 36 hours
     # we notify the user IMMEDIATELY
     # otherwise normal notifications will suffice
     shift = Shift.objects.get(pk=shift_id)
     if shift.user.userprofile.phone_reminders:
         if shift.user.userprofile.phone_number:
+            start = shift.start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
             # send a txt message
-            message = "%s you've been added to a shift." % shift.user.username
+            message = "%s you've been added to a shift on %s" % shift.user.username, start
             phone = shift.user.userprofile.phone_number
             msg = twilio_client.messages.create(
                 body=message,

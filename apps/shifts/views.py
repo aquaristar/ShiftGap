@@ -35,6 +35,7 @@ class ShiftBaseMixin(object):
 
 
 class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
+    template_name = 'shifts/shift_list.html'
     # can't use organizationownedrequired with a list because no self.get_object()?
     from_ = None
     to = None
