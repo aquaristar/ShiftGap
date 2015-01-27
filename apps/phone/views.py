@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 
+import arrow
 from twilio import twiml
 from django_twilio.decorators import twilio_view
 
@@ -61,7 +62,9 @@ def record_incoming_sms(request):
             r.message(msg=msg)
 
     if message == 'next':
-        shifts = Shift.objects.filter(user__userprofile__phone=request.POST['From']).order_by('start_time')
+        now = arrow.utcnow().datetime
+        shifts = Shift.objects.filter(user__userprofile__phone_number=request.POST['From'],
+                                      start_time__gte=now).order_by('start_time')
         if shifts:
             start = shifts[0].start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
             msg = _('Your next shift is at %s') % start
