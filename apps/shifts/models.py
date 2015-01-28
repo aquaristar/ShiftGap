@@ -2,6 +2,8 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
+import arrow
+
 from apps.organizations.models import OrganizationOwned, HasLocation
 
 
@@ -17,13 +19,52 @@ class Schedule(OrganizationOwned, HasLocation):
 
 class ShiftManager(models.Manager):
 
-    def publish(self, from_, to):
-        # publish the shifts
-        # FIXME
-        return 'list_of_shifts_that_was_published'
+    def list_shifts(self, user):
+        """
+        Returns a list of all for a users organization
+        :param user:
+        :return: list of shifts
+        """
+        shifts = self.all()
+        if user.is_authenticated():
+            try:
+                up = user.userprofile
+                shifts = shifts.filter(organization_id=up.organization_id)
+            except AttributeError:
+                shifts = shifts.none()
+        return shifts
 
     def published(self, user):
-        return ''
+        shifts = self.all()
+        if user.is_authenticated():
+            try:
+                up = user.userprofile
+                shifts = shifts.filter(organization_id=up.organization_id, published=True)
+            except AttributeError:
+                shifts = shifts.none()
+        return shifts
+
+    def published_upcoming(self, user):
+        shifts = self.published(user=user)
+        if shifts:
+            shifts = shifts.filter(start_time__gte=arrow.utcnow().datetime).order_by('start_time')
+        return shifts
+
+    def unpublished(self, user):
+        shifts = self.all()
+        if user.is_authenticated():
+            try:
+                up = user.userprofile
+                shifts = shifts.filter(organization_id=up.organization_id, published=False)
+            except AttributeError:
+                shifts = shifts.none()
+        return shifts
+
+    def unpublished_upcoming(self, user):
+        shifts = self.unpublished(user=user)
+        if shifts:
+            shifts = shifts.filter(start_time__gte=arrow.utcnow().datetime).order_by('start_time')
+        return shifts
 
 
 class Shift(OrganizationOwned):
@@ -35,6 +76,8 @@ class Shift(OrganizationOwned):
     twenty_four_hour_reminder_sent = models.BooleanField(default=False)
     ninety_minute_reminder_sent = models.BooleanField(default=False)
     user_has_confirmed = models.BooleanField(default=False)
+
+    objects = ShiftManager()
 
     def __str__(self):
         return self.user.username + ' ' + _('from') + ' ' + str(self.start_time) + ' ' + _('to') + ' ' + str(self.end_time)

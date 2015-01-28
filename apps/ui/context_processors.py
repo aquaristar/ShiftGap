@@ -11,6 +11,5 @@ def process_ui_views(request):
             'time': arrow.utcnow().datetime,
             'naive': timezone.is_aware(arrow.utcnow().datetime),
             'yourtz': request.session.get('django_timezone', None),
-            'myshifts': Shift.objects.filter(user__pk=request.user.pk, published=True,
-                                             start_time__gte=arrow.utcnow().datetime).order_by('start_time')[0:10]
+            'myshifts': Shift.objects.published_upcoming(user=request.user)[0:10]
     }
