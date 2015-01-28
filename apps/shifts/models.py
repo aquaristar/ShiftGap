@@ -22,6 +22,9 @@ class ShiftManager(models.Manager):
         # FIXME
         return 'list_of_shifts_that_was_published'
 
+    def published(self, user):
+        return ''
+
 
 class Shift(OrganizationOwned):
     schedule = models.ForeignKey(Schedule)
@@ -34,7 +37,7 @@ class Shift(OrganizationOwned):
     user_has_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.username + ' from ' + str(self.start_time) + ' to ' + str(self.end_time)
+        return self.user.username + ' ' + _('from') + ' ' + str(self.start_time) + ' ' + _('to') + ' ' + str(self.end_time)
 
     def start_date(self, request):
         # date as would be represented by the requesting users timezone
