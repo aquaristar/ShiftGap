@@ -35,7 +35,6 @@
                 <h5>{% trans "Admin Options" %}</h5>
                 <button id="daterangepub" class="btn btn-info">{% trans "Publish Shifts by Range" %}</button>
                 <button id="daterangeunpub" class="btn btn-warning">{% trans "Unpublish Shifts by Range" %}</button>
-                {#                <button id="daterangepub" class="btn btn-primary">Date Range</button>#}
                 <form id="daterangeform" class="hidden" method="post">{% csrf_token %}
                     <input id="id_from_date" maxlength="10" name="from_date" type="hidden" /><input id="id_to_date" maxlength="10" name="to_date" type="hidden" />
                     <input id="rangesubmit" type="submit" />
@@ -63,14 +62,15 @@
                     {% if user.userprofile.admin_or_manager %}
                         <button id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
                         <button id="unpublishShiftButton" type="button" class="btn btn-warning" data-dismiss="modal">{% trans "Un-Publish" %}</button>
+                        <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     {% endif %}
-                    <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
                     <button type="button" id="saveShiftDetail" class="btn btn-primary">{% trans "Save changes" %}</button>
                 </div>
             </div>
         </div>
     </div>
+    <!-- END Shift Detail Modal -->
 
     <!-- Quick Create Modal -->
     <div class="modal fade" id="quickCreateModal" tabindex="-1" role="dialog" aria-labelledby="quickCreateModalLabel" aria-hidden="true">
@@ -114,6 +114,7 @@
             </div>
         </div>
     </div>
+    <!-- END Quick Create Modal -->
 
 
 
@@ -159,7 +160,6 @@
 
             var source_unpublished = {};
             {% if user.userprofile.admin_or_manager %}
-
                 source_unpublished = {
                     url: '{% url 'shift_list_unpublished_api' %}?format=json',
                     type: 'GET',
@@ -168,8 +168,8 @@
                         alert('There was an error fetching unpublished events. Please contact support.')
                     }
                 };
-
             {% endif %}
+
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
                     $('#quickCreateModal').modal('show');
@@ -183,7 +183,7 @@
                 },
                 eventClick: function (calEvent, jsEvent, view) {
                     $('#shiftDetailModal').modal('show');
-                    $('#shiftDetailModalContent').append("<h2>User: " + calEvent.title + "</h2>" +
+                    $('#shiftDetailModalContent').append("<h2 id=\"h2usertitle\">User: " + calEvent.title + "</h2>" +
                     "<br /><br /><h3>" + calEvent.start.format('h:mm a') + " -- " + calEvent.end.format('h:mm a') + "</h3>");
                     console.log(calEvent);
 
@@ -225,7 +225,7 @@
                 $('#quickCreateModal').modal('hide');
             });
             $('#saveShiftDetail').click(function () {
-                // POST the details
+                // FIXME POST the details
             });
             $('#deleteShiftButton').click(function () {
                 $.ajax({
@@ -301,8 +301,6 @@
                         endDate: moment().add('days', 7)
                     },
                     function(start, end, label) {
-                        console.log('start is ', start);
-                        console.log('end is ', end);
 
                         var r = confirm('Are you sure you want to publish all shifts from ' + start.format('YYYY-MM-DD')
                         + ' to ' +  end.format('YYYY-MM-DD') + '?');
@@ -326,8 +324,6 @@
                         endDate: moment().add('days', 7)
                     },
                     function(start, end, label) {
-                        console.log('start is ', start);
-                        console.log('end is ', end);
 
                         var r = confirm('Are you sure you want to un-publish all shifts from ' + start.format('YYYY-MM-DD')
                         + ' to ' +  end.format('YYYY-MM-DD') + '?');
@@ -388,9 +384,64 @@
                 $('#shiftDetailModal').modal('hide');
             });
 
+
+            {% if user.userprofile.admin_or_manager %}
+            // when we click on the name of the person in the shift detail modal
+            // we replace it with a text box and let them change the user
+            // FIXME: also let them change the time
+            $('#shiftDetailModalContent').on('click', '#h2usertitle',function () {
+                $(this).slideUp();
+                $('#shiftDetailModalContent').append("<p><label for=\"employeeSelector\">{% trans "Employee" %}:</label> " +
+                "<input id=\"employeeSelector\" type=\"text\" name=\"employee\" placeholder=\"{% trans "Start typing first name" %}\">" +
+                "<input type=\"hidden\" id=\"employeeId\"> " +
+                " </p>" +
+                "<button id=\"saveNewDetails\" class=\"btn btn-lg btn-primary\">Save Changes</button>");
+                $('#employeeSelector').typeahead({
+                            highlight: true
+                        },
+                        {
+                            name: 'employees',
+                            displayKey: 'name',
+                            source: engine.ttAdapter()
+                        });
+
+                $("#employeeSelector").on("typeahead:selected typeahead:autocompleted",
+                        function(e,datum) {
+                            $('#employeeId').val(datum.id);
+                        });
+            });
+
+            $('#shiftDetailModalContent').on('click', '#saveNewDetails', function () {
+                var post_url = '/api/v1/shifts/' + currentEvent.id + "/";
+
+                $.ajax({
+                    type: "POST",
+                    url: post_url,
+                    data: {
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                        pk: currentEvent.id,
+                        user: $('#employeeId').val(),
+                        schedule: default_schedule
+                    },
+                    success: function (msg) {
+                        //console.log(msg);
+                    },
+                    error: function (err) {
+                        //console.log(err);
+                    }
+                });
+                $('#shiftDetailModal').modal('hide');
+                setTimeout(function () {
+                    $('#calendar').fullCalendar('refetchEvents');
+                }, 200);
+            });
+            {% endif %}
+
             // end of ready()
         });
         $('#shiftDetailModal').on('hide.bs.modal', function (e) {
+            $('#employeeSelector').val('');
+            $('#employeeId').val('');
             $('#shiftDetailModalContent').empty();
         });
         $('#quickCreateModal').on('hide.bs.modal', function (e) {

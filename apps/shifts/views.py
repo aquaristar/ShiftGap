@@ -9,7 +9,9 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 
 import arrow
-from rest_framework.generics import ListCreateAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, ListAPIView, UpdateAPIView, GenericAPIView
+from rest_framework.mixins import UpdateModelMixin
+from rest_framework.views import APIView, Response
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 
@@ -301,6 +303,28 @@ class ShiftListUnpublishedAPIView(ShiftListAPIMixin, ListAPIView):
         if self.request.user.userprofile.admin_or_manager:
             queryset = queryset.filter(published=False)
         return queryset
+
+from django.views.decorators.csrf import csrf_exempt
+
+
+class ShiftUpdateAPIView(UpdateModelMixin, GenericAPIView):
+    serializer_class = ShiftSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+    authentication_classes = (TokenAuthentication, SessionAuthentication,)
+
+    def dispatch(self, request, *args, **kwargs):
+        # Admin or manager is required
+        if not request.user.userprofile.admin_or_manager:
+            raise Http404()
+        return super(ShiftUpdateAPIView, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # I give up on PUT and PATCH
+        return self.partial_update(request, *args, **kwargs)
+
+    def get_queryset(self):
+        qs = Shift.objects.filter(pk=self.request.data['pk'], organization=self.request.user.userprofile.organization)
+        return qs
 
 
         # def spawn_worker(request):
