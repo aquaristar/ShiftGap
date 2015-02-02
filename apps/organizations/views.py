@@ -169,8 +169,12 @@ class UserEditView(UserProfileRequiredMixin, UpdateView):
     def dispatch(self, request, *args, **kwargs):
         pk = self.kwargs.get(self.pk_url_kwarg, None)
         if self.request.user.userprofile.pk != int(pk) and not self.request.user.userprofile.admin_or_manager:
-            messages.warning(request, "You can only modify your own profile. To modify another users profile,"
-                                      "you must be an admin or manager.")
+            messages.warning(request, _("You can only modify your own profile. To modify another users profile,"
+                                      "you must be an admin or manager."))
+            return HttpResponseRedirect(reverse('org:user_list'))
+        # make sure we are editing a user of the same organization
+        if UserProfile.objects.get(pk=pk).organization != self.request.user.userprofile.organization:
+            messages.warning(request, _("You can't modify a user profile from another organization."))
             return HttpResponseRedirect(reverse('org:user_list'))
         else:
             return super(UserEditView, self).dispatch(request, *args, **kwargs)
