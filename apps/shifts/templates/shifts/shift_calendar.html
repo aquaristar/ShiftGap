@@ -65,7 +65,9 @@
                         <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     {% endif %}
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
+                {% if user.userprofile.admin_or_manager %}
                     <button type="button" id="saveShiftDetail" class="btn btn-primary">{% trans "Save changes" %}</button>
+                {% endif %}
                 </div>
             </div>
         </div>
@@ -172,6 +174,7 @@
 
             $('#calendar').fullCalendar({
                 dayClick: function (date, jsEvent, view) {
+                    {% if user.userprofile.admin_or_manager %}
                     $('#quickCreateModal').modal('show');
                     // this piece of shit offsets the date based on the computers time for some reason
                     var offset = new Date().getTimezoneOffset();
@@ -180,6 +183,7 @@
 
                     $('#shiftCreateModalHeader').append("<h4 class=\"modal-title\" id=\"newShiftDate\">New Shift for " + dateString + ".</h4>");
                     dayCreate = date;
+                    {% endif %}
                 },
                 eventClick: function (calEvent, jsEvent, view) {
                     $('#shiftDetailModal').modal('show');
@@ -226,6 +230,11 @@
             });
             $('#saveShiftDetail').click(function () {
                 // FIXME POST the details
+                {% if user.userprofile.admin_or_manager %}
+                $('#saveNewDetails').trigger('click');
+                {% else %}
+                $('#shiftDetailModal').modal('hide');
+                {% endif %}
             });
             $('#deleteShiftButton').click(function () {
                 $.ajax({
@@ -409,6 +418,7 @@
                         function(e,datum) {
                             $('#employeeId').val(datum.id);
                         });
+                $('#employeeSelector').focus();
             });
 
             $('#shiftDetailModalContent').on('click', '#saveNewDetails', function () {
