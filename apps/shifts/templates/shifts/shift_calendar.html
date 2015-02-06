@@ -65,59 +65,32 @@
                         <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     {% endif %}
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
-                {% if user.userprofile.admin_or_manager %}
-                    <button type="button" id="saveShiftDetail" class="btn btn-primary">{% trans "Save changes" %}</button>
-                {% endif %}
+                    {% if user.userprofile.admin_or_manager %}
+                        <button type="button" id="saveShiftDetail" class="btn btn-primary">{% trans "Save changes" %}</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
     <!-- END Shift Detail Modal -->
 
-    <!-- Quick Create Modal -->
-    <div class="modal fade" id="quickCreateModal" tabindex="-1" role="dialog" aria-labelledby="quickCreateModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div id="shiftCreateModalHeader" class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <!-- Pop Over Content -->
+    <div id="popover-content" class="hide" data-toggle="bob">
+        <div class="form-group">
+            <p><label for="employeeSelector">{% trans "Employee" %}:</label>
+                <input id="employeeSelector" type="text" name="employee" placeholder="{% trans "Start typing first name" %}">
+                <input type="hidden" id="employeeId">
+            </p>
 
-                </div>
-                <div id="quickCreateModalContent" class="modal-body">
+            <p><label for="timeText">{% trans "Time: " %}</label>
+                <input type="text" id="timeText" placeholder="{% trans "e.g. 9am - 5pm / 9-17" %}"></p>
 
-
-                    <div class="form-group">
-                        <p><label for="employeeSelector">{% trans "Employee" %}:</label>
-                            <input id="employeeSelector" type="text" name="employee" placeholder="{% trans "Start typing first name" %}">
-                            <input type="hidden" id="employeeId">
-                        </p>
-
-                        <p><label for="timeText">{% trans "Time: " %}</label>
-                            <input type="text" id="timeText" placeholder="{% trans "e.g. 9am - 5pm / 9-17" %}"></p>
-
-                        <p><input id="quickCreateStartTime" type="hidden" name="start">
-                            <input id="quickCreateEndTime" type="hidden" name="end"></p>
-                        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                            {% trans "Show me How" %}
-                        </button>
-                        <div class="collapse" id="collapseExample" aria-expanded="false">
-                            <div class="well">
-                                {% trans "Start typing the persons first name and click on their name with your mouse." %}
-                                {% trans "For rapid entry, once their name is selected, press Tab twice to go to the next field." %}<br /><br />
-                                {% trans "In the time field you can enter any valid work time, for example: 9am to 5pm, 9a - 5p or 9-17." %}
-                                {% trans "All are valid entries. You can schedule 10pm - 2am and it will automatically adjust the ending date." %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
-                    <button type="button" id="saveQuickShift" class="btn btn-primary">{% trans "Save" %}</button>
-                </div>
-            </div>
+            <p><input id="quickCreateStartTime" type="hidden" name="start">
+                <input id="quickCreateEndTime" type="hidden" name="end"></p>
+            <button onclick="window.closePopover(this);" id="popover-close" class="btn btn-sm btn-primary">X</button>
+            <button id="popover-save" onclick="window.newShift(this)" class="btn btn-sm btn-primary">{% trans "Save" %}</button>
         </div>
     </div>
-    <!-- END Quick Create Modal -->
-
 
 
 {% endblock content %}
@@ -125,16 +98,26 @@
 {% block tail %}
     <script src="{% static 'bower_components/typeahead.js/dist/typeahead.bundle.min.js' %}"></script>
     <script src="{% static "bower_components/bootstrap-daterangepicker/daterangepicker.js" %}"></script>
+
     <script>
-        var employees = {{ employees|safe }};
-        var default_schedule = {{ default_schedule|safe }};
-        var dayCreate = null;
-        var currentEvent = null;
-        var me = {{ user.pk }};
+        window.employees = {{ employees|safe }};
+        window.default_schedule = {{ default_schedule|safe }};
+        window.dayCreate = null;
+        window.currentEvent = null;
+        window.me = {{ user.pk|safe }};
+
+        window.list_create_api_url = "{% url 'shift_list_create_api' %}";
+
+        {% if user.userprofile.admin_or_manager %}
+            window.admin_or_manager = true;
+        {% else %}
+            window.admin_or_manager = false;
+        {% endif %}
+
 
         $(document).ready(function () {
 
-            var source = {
+            window.source = {
                 url: '{% url 'shift_list_create_api' %}?format=json',
                 type: 'GET',
                 data: {
@@ -147,7 +130,7 @@
                 }
             };
 
-            var source_filtered = {
+            window.source_filtered = {
                 url: '{% url 'shift_list_filtered_api' %}?format=json',
                 type: 'GET',
                 data: {
@@ -160,7 +143,7 @@
                 }
             };
 
-            var source_unpublished = {};
+            window.source_unpublished = {};
             {% if user.userprofile.admin_or_manager %}
                 source_unpublished = {
                     url: '{% url 'shift_list_unpublished_api' %}?format=json',
@@ -172,70 +155,37 @@
                 };
             {% endif %}
 
-            $('#calendar').fullCalendar({
-                dayClick: function (date, jsEvent, view) {
-                    {% if user.userprofile.admin_or_manager %}
-                    $('#quickCreateModal').modal('show');
-                    // this piece of shit offsets the date based on the computers time for some reason
-                    var offset = new Date().getTimezoneOffset();
-                    date = date.zone(-offset);
-                    var dateString = date._d.toString().slice(0,15);
+            // using jQuery
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie != '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            var csrftoken = getCookie('csrftoken');
 
-                    $('#shiftCreateModalHeader').append("<h4 class=\"modal-title\" id=\"newShiftDate\">New Shift for " + dateString + ".</h4>");
-                    dayCreate = date;
-                    {% endif %}
-                },
-                eventClick: function (calEvent, jsEvent, view) {
-                    $('#shiftDetailModal').modal('show');
-                    $('#shiftDetailModalContent').append("<h2 id=\"h2usertitle\">User: " + calEvent.title + "</h2>" +
-                    "<br /><br /><h3>" + calEvent.start.format('h:mm a') + " -- " + calEvent.end.format('h:mm a') + "</h3>");
-                    console.log(calEvent);
 
-                    currentEvent = calEvent;
-                },
-                eventSources: [
-                    source,
-                    source_unpublished
-                ],
-                displayEventEnd: true,
-                header: {
-                    left: 'title',
-                    center: '',
-                    right: 'today agendaWeek month prev, next'
+            function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    }
                 }
             });
-            $('#saveQuickShift').click(function () {
-                var times = shorthand_to_datetimes(dayCreate, $('#timeText').val());
-                $('#quickCreateStartTime').val(times[0]);
-                $('#quickCreateEndTime').val(times[1]);
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'shift_list_create_api' %}",
-                    data: {
-                        csrfmiddlewaretoken: "{{ csrf_token }}",
-                        schedule: default_schedule,
-                        start_time: $('#quickCreateStartTime').val(),
-                        end_time: $('#quickCreateEndTime').val(),
-                        user: $('#employeeId').val()
-                    },
-                    success: function () {
-                        // display something to the user
-                        $('#calendar').fullCalendar('refetchEvents');
-                    },
-                    dataType: 'JSON'
-                }).fail(function () {
-                    alert('Shift creation failed!');
-                });
-                $('#quickCreateModal').modal('hide');
-            });
-            $('#saveShiftDetail').click(function () {
-                // FIXME POST the details
-                {% if user.userprofile.admin_or_manager %}
-                $('#saveNewDetails').trigger('click');
-                {% else %}
-                $('#shiftDetailModal').modal('hide');
-                {% endif %}
-            });
+
             $('#deleteShiftButton').click(function () {
                 $.ajax({
                     type: "POST",
@@ -263,24 +213,7 @@
                     $('#saveQuickShift').trigger('click');
                 }
             });
-            // prep Bloodhound suggestion engine for employee drop down selection
-            var engine = new Bloodhound({
-                name: 'employees',
-                local: employees,
-                datumTokenizer: function(d) {
-                    return Bloodhound.tokenizers.whitespace(d.name);
-                },
-                queryTokenizer: Bloodhound.tokenizers.whitespace
-            });
-            engine.initialize();
-            $('#employeeSelector').typeahead({
-                        highlight: true
-                    },
-                    {
-                        name: 'employees',
-                        displayKey: 'name',
-                        source: engine.ttAdapter()
-                    });
+
 
             $('#checkMe').change(function () {
                 if(this.checked) {
@@ -394,58 +327,31 @@
             });
 
 
-            {% if user.userprofile.admin_or_manager %}
-            // when we click on the name of the person in the shift detail modal
-            // we replace it with a text box and let them change the user
-            // FIXME: also let them change the time
-            $('#shiftDetailModalContent').on('click', '#h2usertitle',function () {
-                $(this).slideUp();
-                $('#shiftDetailModalContent').append("<p><label for=\"employeeSelector\">{% trans "Employee" %}:</label> " +
-                "<input id=\"employeeSelector\" type=\"text\" name=\"employee\" placeholder=\"{% trans "Start typing first name" %}\">" +
-                "<input type=\"hidden\" id=\"employeeId\"> " +
-                " </p>" +
-                "<button id=\"saveNewDetails\" class=\"btn btn-lg btn-primary\">Save Changes</button>");
-                $('#employeeSelector').typeahead({
-                            highlight: true
+                $('#shiftDetailModalContent').on('click', '#saveNewDetails', function () {
+                    var post_url = '/api/v1/shifts/' + currentEvent.id + "/";
+
+                    $.ajax({
+                        type: "POST",
+                        url: post_url,
+                        data: {
+                            csrfmiddlewaretoken: "{{ csrf_token }}",
+                            pk: currentEvent.id,
+                            user: $('#employeeId').val(),
+                            schedule: default_schedule
                         },
-                        {
-                            name: 'employees',
-                            displayKey: 'name',
-                            source: engine.ttAdapter()
-                        });
-
-                $("#employeeSelector").on("typeahead:selected typeahead:autocompleted",
-                        function(e,datum) {
-                            $('#employeeId').val(datum.id);
-                        });
-                $('#employeeSelector').focus();
-            });
-
-            $('#shiftDetailModalContent').on('click', '#saveNewDetails', function () {
-                var post_url = '/api/v1/shifts/' + currentEvent.id + "/";
-
-                $.ajax({
-                    type: "POST",
-                    url: post_url,
-                    data: {
-                        csrfmiddlewaretoken: "{{ csrf_token }}",
-                        pk: currentEvent.id,
-                        user: $('#employeeId').val(),
-                        schedule: default_schedule
-                    },
-                    success: function (msg) {
-                        //console.log(msg);
-                    },
-                    error: function (err) {
-                        //console.log(err);
-                    }
+                        success: function (msg) {
+                            //console.log(msg);
+                        },
+                        error: function (err) {
+                            //console.log(err);
+                        }
+                    });
+                    $('#shiftDetailModal').modal('hide');
+                    setTimeout(function () {
+                        $('#calendar').fullCalendar('refetchEvents');
+                    }, 200);
                 });
-                $('#shiftDetailModal').modal('hide');
-                setTimeout(function () {
-                    $('#calendar').fullCalendar('refetchEvents');
-                }, 200);
-            });
-            {% endif %}
+
 
             // end of ready()
         });
@@ -471,4 +377,5 @@
                     $('#employeeId').val(datum.id);
                 });
     </script>
+    <script src="{% static 'calendar.js' %}"></script>
 {% endblock tail%}
