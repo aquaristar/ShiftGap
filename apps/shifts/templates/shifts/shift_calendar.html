@@ -60,9 +60,9 @@
                 </div>
                 <div class="modal-footer">
                     {% if user.userprofile.admin_or_manager %}
-                        <button id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
-                        <button id="unpublishShiftButton" type="button" class="btn btn-warning" data-dismiss="modal">{% trans "Un-Publish" %}</button>
-                        <button id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
+                        <button onclick="window.publishShiftButton()" id="publishShiftButton" type="button" class="btn btn-info" data-dismiss="modal">{% trans "Publish" %}</button>
+                        <button onclick="window.unpublishShiftButton()" id="unpublishShiftButton" type="button" class="btn btn-warning" data-dismiss="modal">{% trans "Un-Publish" %}</button>
+                        <button onclick="window.deleteShiftButton()" id="deleteShiftButton" type="button" class="btn btn-danger" data-dismiss="modal">{% trans "Delete" %}</button>
                     {% endif %}
                     <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
                     {% if user.userprofile.admin_or_manager %}
@@ -107,6 +107,9 @@
         window.me = {{ user.pk|safe }};
 
         window.list_create_api_url = "{% url 'shift_list_create_api' %}";
+        window.shift_delete_calendar_url = "{% url 'shifts:shift_delete_calendar'%}";
+        window.shift_pubunpub_url =  "{% url 'shifts:shift_pubunpub' %}";
+        console.log(window.shift_pubunpub_url);
 
         {% if user.userprofile.admin_or_manager %}
             window.admin_or_manager = true;
@@ -145,7 +148,7 @@
 
             window.source_unpublished = {};
             {% if user.userprofile.admin_or_manager %}
-                source_unpublished = {
+                window.source_unpublished = {
                     url: '{% url 'shift_list_unpublished_api' %}?format=json',
                     type: 'GET',
                     color: 'orange',
@@ -155,7 +158,7 @@
                 };
             {% endif %}
 
-            // using jQuery
+            // make ajax calls using csrf token automatically
             function getCookie(name) {
                 var cookieValue = null;
                 if (document.cookie && document.cookie != '') {
@@ -186,55 +189,11 @@
                 }
             });
 
-            $('#deleteShiftButton').click(function () {
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'shifts:shift_delete_calendar'%}",
-                    data: {
-                        csrfmiddlewaretoken: "{{ csrf_token }}",
-                        pk: currentEvent.id
-                    },
-                    success: function () {
-                        // display something to the user
-                        alert('Shift Deleted!');
-                        $('#calendar').fullCalendar('refetchEvents');
-                    },
-                    dataType: 'JSON'
-                }).fail(function (err) {
-                    alert('Shift deletion failed!');
-                    $('#calendar').fullCalendar('refetchEvents');
-                });
-                $('#shiftDetailModal').modal('hide');
-            });
-            $('#timeText').keydown(function (e) {
-                if (e.which == 13) {
-                    e.preventDefault();
-
-                    $('#saveQuickShift').trigger('click');
-                }
-            });
+            // ------------- end AJAX setup
 
 
-            $('#checkMe').change(function () {
-                if(this.checked) {
-                    // uncheck everyone
-                    $('#checkEveryone').attr('checked', false);
-                    // add source for just me
-                    $('#calendar').fullCalendar('addEventSource', source_filtered);
-                    $('#calendar').fullCalendar('removeEventSource', source);
-                    $('#calendar').fullCalendar('removeEventSource', source_unpublished);
-                }
-            });
-            $('#checkEveryone').change(function () {
-                if(this.checked) {
-                    // uncheck me
-                    $('#checkMe').attr('checked', false);
-                    // add regular source back
-                    $('#calendar').fullCalendar('addEventSource', source);
-                    $('#calendar').fullCalendar('addEventSource', source_unpublished);
-                    $('#calendar').fullCalendar('removeEventSource', source_filtered);
-                }
-            });
+
+
 
             $('#daterangepub').daterangepicker(
                     {
@@ -282,100 +241,39 @@
                         }
                     }
             );
-            $('#publishShiftButton').click(function () {
+
+
+            $('#shiftDetailModalContent').on('click', '#saveNewDetails', function () {
+                var post_url = '/api/v1/shifts/' + currentEvent.id + "/";
+
                 $.ajax({
-                    type: 'POST',
-                    url: "{% url 'shifts:shift_pubunpub' %}",
+                    type: "POST",
+                    url: post_url,
                     data: {
                         csrfmiddlewaretoken: "{{ csrf_token }}",
                         pk: currentEvent.id,
-                        pub: "True",
-                        success: function () {
-                            // display something to the user
-                            setTimeout(function () {
-                                $('#calendar').fullCalendar('refetchEvents');
-                            }, 200);
-                        }
+                        user: $('#employeeId').val(),
+                        schedule: default_schedule
+                    },
+                    success: function (msg) {
+                        //console.log(msg);
+                    },
+                    error: function (err) {
+                        //console.log(err);
                     }
-                }).fail(function (err) {
-                    alert('Shift deletion failed!');
-                    $('#calendar').fullCalendar('refetchEvents');
                 });
                 $('#shiftDetailModal').modal('hide');
-            });
-
-            $('#unpublishShiftButton').click(function () {
-                $.ajax({
-                    type: 'POST',
-                    url: "{% url 'shifts:shift_pubunpub' %}",
-                    data: {
-                        csrfmiddlewaretoken: "{{ csrf_token }}",
-                        pk: currentEvent.id,
-                        pub: "False",
-                        success: function () {
-                            // display something to the user
-                            setTimeout(function () {
-                                $('#calendar').fullCalendar('refetchEvents');
-                            }, 200);
-                        }
-                    }
-                }).fail(function (err) {
-                    alert('Shift deletion failed!');
+                setTimeout(function () {
                     $('#calendar').fullCalendar('refetchEvents');
-                });
-                $('#shiftDetailModal').modal('hide');
+                }, 200);
             });
-
-
-                $('#shiftDetailModalContent').on('click', '#saveNewDetails', function () {
-                    var post_url = '/api/v1/shifts/' + currentEvent.id + "/";
-
-                    $.ajax({
-                        type: "POST",
-                        url: post_url,
-                        data: {
-                            csrfmiddlewaretoken: "{{ csrf_token }}",
-                            pk: currentEvent.id,
-                            user: $('#employeeId').val(),
-                            schedule: default_schedule
-                        },
-                        success: function (msg) {
-                            //console.log(msg);
-                        },
-                        error: function (err) {
-                            //console.log(err);
-                        }
-                    });
-                    $('#shiftDetailModal').modal('hide');
-                    setTimeout(function () {
-                        $('#calendar').fullCalendar('refetchEvents');
-                    }, 200);
-                });
 
 
             // end of ready()
         });
-        $('#shiftDetailModal').on('hide.bs.modal', function (e) {
-            $('#employeeSelector').val('');
-            $('#employeeId').val('');
-            $('#shiftDetailModalContent').empty();
-        });
-        $('#quickCreateModal').on('hide.bs.modal', function (e) {
-            $('#newShiftDate').remove();
-            // clean it all up
-            $('#timeText').val('');
-            $('#quickCreateStartTime').val('');
-            $('#quickCreateEndTime').val('');
-            $('#employeeSelector').val('');
-            $('#employeeId').val('');
-        });
-        $('#quickCreateModal').on('shown.bs.modal', function (e) {
-            $('#employeeSelector').focus();
-        });
-        $("#employeeSelector").on("typeahead:selected typeahead:autocompleted",
-                function(e,datum) {
-                    $('#employeeId').val(datum.id);
-                });
+
+
+
     </script>
     <script src="{% static 'calendar.js' %}"></script>
 {% endblock tail%}
