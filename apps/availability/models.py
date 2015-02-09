@@ -1,4 +1,5 @@
-from datetime import time
+from datetime import time, datetime
+import pytz
 
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
@@ -149,16 +150,17 @@ class AvailabilityManager(models.Manager):
         av = self.filter(approved=True)
         # see if there is any availability records that correspond for the specific date
         av = av.filter(user=user, start_date__lte=date, end_date__gte=date)
+
         if av.exists():
-            return av[0]
-        # if none then see if there are any general availability records for the user
+            return av[0]  # only one record should ever exist matching this query
         else:
+            # if none then see if there are any general availability records for the user
             av = self.filter(user=user, start_date=None, end_date=None)
             if av.exists():
                 return av[0]  # only one record should ever exist matching this query
             else:
-                # create a blank availability record here?
-                # if none then return None
+                # create a blank availability record here????
+                # if none then return None (we assume the user is always available with this set)
                 return None
 
 
@@ -185,7 +187,8 @@ class Availability(OrganizationOwned):
 
 
     Important - when comparing start_time and end_time, we'll need to join them to the start_date and
-    end_date then localize in the users timezone to provide a meaningful response
+    end_date then localize in the users timezone to provide a meaningful response, otherwise we may
+    encounter edge cases
 
     """
     start_date = models.DateField(blank=True, null=True)  # if blank/null we assume this is the users 'general'
@@ -196,7 +199,7 @@ class Availability(OrganizationOwned):
     start_time = models.TimeField(blank=True, null=True)
     end_time = models.TimeField(blank=True, null=True)
     # otherwise we set it on a day of the week basis
-        # see DayAvailability model and switch_to_day_availability method
+    # see DayAvailability model and switch_to_day_availability method
 
     approved = models.BooleanField(default=False)  # requires manager approval before coming into effect
 
@@ -209,7 +212,8 @@ class Availability(OrganizationOwned):
     def expired(self):
         # if end_date is past, return True else return False
         # can be used to purge the database of old availability records
-        pass
+        date = self.user.userprofile.timezone.localize(datetime.now())
+        return True if date > self.end_date else False
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, approved=False):
@@ -226,12 +230,46 @@ class Availability(OrganizationOwned):
     def clean(self):
         # Only one record can exist per User that has the 'start_date' and 'end_date' that is null
         # otherwise we won't know which record is the users 'general' or day to day availability
-        # this method will enforce that once implemented
+        if not self.start_date and not self.end_date:
+            if self.pk and Availability.objects.filter(user=self.user, start_date=None, end_date=None).count() > 1:
+                raise ValidationError(_('Only only general availability record is permitted. Edit the existing record.'))
+            elif not self.pk and Availability.objects.filter(user=self.user,
+                                                             start_date=None, end_date=None).count() > 0:
+                raise ValidationError(_('Only only general availability record is permitted. Edit the existing record.'))
+
+        def test_overlap(dt1_st, dt1_end, dt2_st, dt2_end):
+            return not (dt1_st < dt2_end and dt1_end > dt2_st)
 
         # Make sure two Availability instances don't exist with overlapping ranges
+        for avail in Availability.objects.filter(user=self.user):
+            """
+            1) Put all of your intervals in one array.
+
+            2) Sort that array by the lower bound of each interval.
+
+            3) Loop through the intervals from lowest lower bound to highest upper bound:
+
+            a) If the interval after this one starts before this one ends, merge them (delete the second one and extend this one to have its upper bound).
+
+            b) Repeat until the next interval starts after this one ends.
+
+            4) Repeat until you've reached the last interval.
+            """
+            pass
 
         # if there are two DayAvailability records for the same day of the week, the times should not
         # overlap.
+        for day in self.dayavailability_set.all():
+            pass
+
+        if self.start_time and self.end_time:
+            if self.start_time > self.end_time:
+                raise ValidationError(_('Start time is invalid, start time must be before end time.'))
+
+        if self.start_date and self.end_date:
+            if self.start_date > self.end_date:
+                raise ValidationError(_('Start date is invalid, start date must be before end date.'))
+
         return super(Availability, self).clean()
 
     def switch_to_day_availability(self):
@@ -239,12 +277,15 @@ class Availability(OrganizationOwned):
         If user needs to define availability on a day of the week basis, this will create the associated
         records required .
         """
+        start_time = self.start_time or time.min  # use current start_time and end_time as default values
+        end_time = self.end_date or time.max  # otherwise use min and max
         for day in range(0, 7):
+
             DayAvailability.objects.create(
                 availability=self,
                 day_of_week=day,
-                start_time=self.start_time,  # use current start_time and end_time as default values
-                end_time=self.end_time
+                start_time=start_time,
+                end_time=end_time
             )
         self.start_time = None
         self.end_time = None
@@ -258,7 +299,7 @@ class Availability(OrganizationOwned):
         records = self.dayavailability_set.all()
         for record in records:
             record.delete()
-        self.start_time = time(0, 0)  # some default value
+        self.start_time = time.min  # some default value
         self.end_time = time.max  # some default value
         self.save()
 
@@ -294,3 +335,7 @@ class DayAvailability(models.Model):
     day_of_week = models.PositiveIntegerField(max_length=1, choices=CHOICES)
     start_time = models.TimeField()
     end_time = models.TimeField()
+
+    @property
+    def day(self):
+        return self.CHOICES[self.day_of_week]  # FIXME this probably doesn't work

@@ -3,6 +3,7 @@ import datetime
 
 from django.test import TestCase
 from django.forms.models import model_to_dict
+from django.core.exceptions import ValidationError
 
 from model_mommy import mommy
 
@@ -32,12 +33,13 @@ class TestAvailabilityLogic(TestCase):
             end_time=datetime.time(22, 0, 0)
         )
         av.approve()
+        av.clean()
         return av
 
     def create_approved_availability_with_specific_dates(self):
         """
         Creates an availability record with specific to and from dates and specific from and to times
-        :return:
+        :return: Availability instance
         """
         av = Availability.objects.create(
             organization=self.org,
@@ -48,6 +50,7 @@ class TestAvailabilityLogic(TestCase):
             end_date=datetime.date(2015, 6, 15)  # to June 15th
         )
         av.approve()
+        av.clean()
         return av
 
     def test_can_approve_availability_for_user(self):
@@ -80,9 +83,89 @@ class TestAvailabilityLogic(TestCase):
         av = Availability.objects.get_availability_for_date(user=self.user, date=datetime.date(2015, 6, 1))
         self.assertIsNone(av)
 
-    # test clean methods for raiding validation error
+    def test_start_time_after_end_time_raises_error(self):
+        # a start time after the end time should trigger a ValidationError
+        av = Availability.objects.create(
+            organization=self.org,
+            user=self.user,
+            start_time=datetime.time(22, 0, 0),
+            end_time=datetime.time(9, 0, 0)
+        )
+        av.approve()
+        self.assertRaises(ValidationError, av.clean)
+
+    def test_start_date_after_end_date_raises_error(self):
+        # a start date after the end date should trigger a ValidationError
+        av = Availability.objects.create(
+            organization=self.org,
+            user=self.user,
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(22, 0, 0),
+            start_date=datetime.date(2015, 6, 15),
+            end_date=datetime.date(2015, 6, 1)
+        )
+        av.approve()
+        self.assertRaises(ValidationError, av.clean)
+
+    def test_two_availability_with_null_dates_raises_validation_error(self):
+        av = Availability(
+            organization=self.org,
+            user=self.user,
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(22, 0, 0)
+        )
+        av.clean()
+        av.save()
+        self.assertGreater(av.pk, 0)
+        av1 = Availability(
+            organization=self.org,
+            user=self.user,
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(22, 0, 0)
+        )
+        self.assertRaises(ValidationError, av1.clean)
+
+    def test_two_availability_with_null_dates_raises_validation_error_post_save(self):
+        av = Availability(
+            organization=self.org,
+            user=self.user,
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(22, 0, 0)
+        )
+        av.clean()
+        av.save()
+        self.assertGreater(av.pk, 0)
+        av1 = Availability(
+            organization=self.org,
+            user=self.user,
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(22, 0, 0)
+        )
+        av1.save()
+        # why doesn't this cause an IntegrityError because of unique_together = (('start_date', 'end_date', 'user'),)??
+        self.assertRaises(ValidationError, av1.clean)
+
+    def test_switch_to_day_of_week_availability(self):
+        # we switch from using start_time and end_time to defining start_time and end_time
+        # for each day of the week rather than the entire range using DayAvailability records
+        av = self.create_approved_availability_general_one()
+        av.switch_to_day_availability()
+        # one DayAvailability for each day of the week
+        self.assertEqual(av.dayavailability_set.all().count(), 7)
+        self.assertIsNone(av.start_time)
+        self.assertIsNone(av.end_time)
+
+    def test_switch_back_to_general_non_day_of_week_availability(self):
+        # we switch from using DayAvailability records to defining start_time and end_time
+        # on the Availability instance to define our availability for each day in the range
+        av = self.create_approved_availability_general_one()
+        av.switch_to_day_availability()
+        av.switch_to_general_availability()
+        # no DayAvailability records
+        self.assertEqual(av.dayavailability_set.all().count(), 0)
+        self.assertIsNotNone(av.start_time)
+        self.assertIsNotNone(av.end_time)
+
     # only one per date range, disallow overlapping
-    # test creation of day of the week records DayAvailability
-    # test switch back to general availability
     # test approving time off creates availability record
     # test manager gives ok when given shift or error
