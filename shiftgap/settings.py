@@ -62,6 +62,7 @@ INSTALLED_APPS = (
     'apps.organizations',
     'apps.shifts',
     'apps.phone',
+    'apps.availability',
 )
 
 MIDDLEWARE_CLASSES = (

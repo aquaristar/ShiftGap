@@ -1,3 +1,5 @@
+import datetime
+
 from rest_framework import serializers
 
 from .models import Shift
@@ -34,7 +36,6 @@ class ShiftSerializer(serializers.ModelSerializer):
         # timezones in validated_data are presented in UTC, even though they are really in the users
         # local timezone - this is a messy way to strip out the tz data and re-localize it based on the
         # users timezone in their profile. It should probably be reviewed and fixed
-        import datetime
         start = datetime.datetime(*validated_data['start_time'].timetuple()[:6])
         start = self.context['request'].user.userprofile.timezone.localize(start)
         end = datetime.datetime(*validated_data['end_time'].timetuple()[:6])
