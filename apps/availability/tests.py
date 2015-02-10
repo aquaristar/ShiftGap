@@ -251,17 +251,19 @@ class TestAvailabilityLogic(TestCase):
         )
         self.assertRaises(ValidationError, av3.clean)
 
-    def test_four_date_range_overlap_raises_validation_error(self):
-        av = self.create_approved_availability_with_specific_dates()
-        av2 = Availability.objects.create(
+    def test_four_date_range_overlap_raises_validation_error_plus_general_availability(self):
+        av0 = self.create_approved_availability_general_one()
+        av = self.create_approved_availability_with_specific_dates()  # 6-1 to 6-15
+        av2 = Availability(
             organization=self.org,
             user=self.user,
             start_time=datetime.time(9, 0, 0),
             end_time=datetime.time(22, 0, 0),
-            start_date=datetime.date(2015, 6, 15),
+            start_date=datetime.date(2015, 6, 15),  # offending date range - 'av' above goes to the 15th
             end_date=datetime.date(2015, 6, 20)
         )
         self.assertRaises(ValidationError, av2.clean)
+        # av2.save()  # av2 would never get saved because it fails clean() validation
         av3 = Availability.objects.create(
             organization=self.org,
             user=self.user,

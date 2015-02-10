@@ -1,4 +1,4 @@
-from datetime import time, datetime
+from datetime import time, datetime, date
 import pytz
 import itertools
 
@@ -217,8 +217,8 @@ class Availability(OrganizationOwned):
     def expired(self):
         # if end_date is past, return True else return False
         # can be used to purge the database of old availability records
-        date = self.user.userprofile.timezone.localize(datetime.now())
-        return True if date > self.end_date else False
+        availability_date = self.user.userprofile.timezone.localize(datetime.now())
+        return True if availability_date > self.end_date else False
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, approved=False):
@@ -246,25 +246,33 @@ class Availability(OrganizationOwned):
         def test_overlap(dt1_st, dt1_end, dt2_st, dt2_end):
             return dt1_st <= dt2_end and dt1_end >= dt2_st
 
-        # Goal: Make sure two Availability instances don't exist with overlapping ranges
-        availabilities = Availability.objects.filter(user=self.user)  # put all of your intervals in one array
+        # ignore if no start_date and end_date set
+        if self.start_date and self.end_date:
+            # Goal: Make sure two Availability instances don't exist with overlapping ranges
+            availabilities = Availability.objects.filter(user=self.user).exclude(start_date=None, end_date=None)
 
-        av_list = list(availabilities)
-        if self.pk is None:  # if it's not saved yet we still need to take the current range into account for validation
-            av_list += [self]
+            # put all of your intervals in one array
+            av_list = list(availabilities)
+            # we assume it's not saved yet to the database if self.pk is None
+            if self.pk is None:  # if it's not saved yet we still need to take the current range into account
+                av_list += [self]
 
-        # sort the array by the lower bound of each interval, then the upper bound
-        av_list = sorted(av_list, key=lambda x: (x.start_date, x.end_date))
+            # sort the array by the lower bound of each interval, then the upper bound
+            av_list = sorted(av_list, key=lambda x: (x.start_date, x.end_date))
 
-        avs = len(av_list)
-        for avx in range(0, avs):
-            try:
-                overlap = test_overlap(av_list[avx].start_date, av_list[avx].end_date,
-                                       av_list[avx+1].start_date, av_list[avx+1].end_date)
-                if overlap:
-                    raise ValidationError(_('Date ranges cannot overlap'))
-            except IndexError:
-                pass
+            avs = len(av_list)
+            # Loop through the intervals from lowest lower bound to highest upper bound:
+            for avx in range(0, avs):
+
+                try:
+                    # If the interval after this one starts before this one ends,
+                    # raise a validation error
+                    overlap = test_overlap(av_list[avx].start_date, av_list[avx].end_date,
+                                           av_list[avx+1].start_date, av_list[avx+1].end_date)
+                    if overlap:
+                        raise ValidationError(_('Date ranges cannot overlap'))
+                except IndexError:
+                    pass
 
         # if there are multiple DayAvailability records for the same day of the week, the times should not
         # overlap.
