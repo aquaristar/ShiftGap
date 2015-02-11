@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -82,6 +84,15 @@ class Shift(OrganizationOwned):
     def __str__(self):
         return self.user.username + ' ' + _('from') + ' ' + str(self.start_time) + ' ' + _('to') + ' ' + str(self.end_time)
 
+    @property
+    def duration(self):
+        duration = (self.end_time - self.start_time)
+        duration = duration / timedelta(hours=1)
+        # FIXME this may fail around DST transitions, we need to calculate duration as it would
+        # be experienced by the user in his or her timezone - actually wait? these are in UTC so we're good?
+        # return str(divmod(duration.days * 86400 + duration.seconds, 60))
+        return duration
+
     def start_date(self, request):
         # date as would be represented by the requesting users timezone
         return self.start_time.astimezone(tz=request.user.userprofile.timezone).date()
@@ -103,3 +114,5 @@ class Shift(OrganizationOwned):
     def unpublish(self):
         self.published = False
         self.save()
+
+

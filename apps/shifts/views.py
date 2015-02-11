@@ -1,5 +1,4 @@
 import json
-from functools import wraps
 
 from django.views.generic import ListView, CreateView, UpdateView, TemplateView, FormView
 from django.http.response import HttpResponse, Http404, HttpResponseRedirect
@@ -8,10 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 
+
 import arrow
-from rest_framework.generics import ListCreateAPIView, ListAPIView, UpdateAPIView, GenericAPIView
+from rest_framework.generics import ListCreateAPIView, ListAPIView, GenericAPIView
 from rest_framework.mixins import UpdateModelMixin
-from rest_framework.views import APIView, Response
 from rest_framework import permissions
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 
@@ -20,6 +19,8 @@ from apps.ui.models import UserProfile
 from .models import Shift, Schedule
 from .forms import ShiftForm, PublishShiftDateRangeForm
 from .serializers import ShiftSerializer
+
+
 
 
 class ShiftBaseMixin(object):
@@ -75,6 +76,8 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
         context = super(ShiftListView, self).get_context_data(**kwargs)
         context['from'] = self.from_
         context['to'] = self.to
+        if self.request.GET.get('byuser', None):
+            context['byuser'] = True
         return context
 
 

@@ -2,6 +2,7 @@
 {% load tz %}
 {% load i18n %}
 {% load static from staticfiles %}
+{% load running_total %}
 {% localtime %}
 
     {% block head %}
@@ -20,38 +21,80 @@
                 <span>{{ from|date }} - {{ to|date }}</span> <b class="caret"></b>
             </div>
         </div>
-        <div class="row">
-            {% regroup object_list by start_time|date:"Y-m-d" as objects_by_day %}
-            <div class="col-md-8">
-                {% for d in objects_by_day %}
-                    <h5>{{ d.grouper }}</h5>
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <td>{% trans "Time" %}</td>
-                            <td>{% trans "Name" %}</td>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for shift in d.list %}
+        {% if not byuser %}
+            <div class="row">
+                {% regroup object_list by start_time|date:"Y-m-d" as objects_by_day %}
+                <div class="col-md-8">
+                    {% for d in objects_by_day %}
+                        <h5>{{ d.grouper }}</h5>
+                        <table class="table table-bordered">
+                            <thead>
                             <tr>
-                                <td>{{ shift.start_time|time }}  -  {{ shift.end_time|time }}</td>
-                                {% if shift.user.first_name %}
-                                    <td>{{ shift.user.first_name }} {{ shift.user.last_name }}</td>
-                                {% else %}
-                                    <td>{{ shift.user }}</td>
-                                {% endif %}
+                                <td>{% trans "Time" %}</td>
+                                <td>{% trans "Name" %}</td>
                             </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {% for shift in d.list %}
+                                <tr>
+                                    <td>{{ shift.start_time|time }}  -  {{ shift.end_time|time }}</td>
+                                    {% if shift.user.first_name %}
+                                        <td>{{ shift.user.first_name }} {{ shift.user.last_name }}</td>
+                                    {% else %}
+                                        <td>{{ shift.user }}</td>
+                                    {% endif %}
 
-                {% endfor %}
-            </div>
-            <div class="col-md-4">
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endfor %}
+                </div>
+                <div class="col-md-4">
 
+                </div>
             </div>
-        </div>
+        {% else %}
+
+            <!-- DISPLAY grouped by user if byuser=true in url get query string -->
+            <div class="row">
+                {% regroup object_list by user as objects_by_user %}
+                <div class="col-md-8">
+                    {% for d in objects_by_user %}
+                        <h3>{{ d.grouper.first_name }} {{ d.grouper.last_name }}</h3><small>{% trans "Total hours:" %} {{ d.list|running_total }}</small>
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <td>{% trans "Time" %}</td>
+                                <td>{% trans "Date" %}</td>
+                                <td>{% trans "Name" %}</td>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for shift in d.list %}
+                                <tr>
+                                    <td>{{ shift.start_time|time }}  -  {{ shift.end_time|time }}</td>
+                                    <td>{{ shift.start_time|date }}</td>
+                                    {% if shift.user.first_name %}
+                                        <td>{{ shift.user.first_name }} {{ shift.user.last_name }}</td>
+                                    {% else %}
+                                        <td>{{ shift.user }}</td>
+                                    {% endif %}
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- end of display by user -->
+        {% endif %}
+        {% if user.userprofile.admin_or_manager %}
+            <button class="btn btn-primary" id="byuser" >{% trans "Group by User" %}</button>
+        {% endif %}<br /><br />
 
     {% endblock content%}
 {% endlocaltime %}
@@ -78,6 +121,14 @@
                         window.location.href = {% url 'shifts:shift_list' %} + '?from=' + start.format('YYYY-MM-DD') + '&to=' + end.format('YYYY-MM-DD');
                     }
             );
+
+            $("#byuser").click(function () {
+                if(window.location.href.indexOf("?") > -1) {
+                    window.location = location + '&byuser=true'
+                } else {
+                    window.location = location + '?byuser=true'
+                }
+            });
         });
     </script>
 {% endblock tail %}
