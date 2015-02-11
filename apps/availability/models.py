@@ -1,4 +1,4 @@
-from datetime import time, datetime, date
+from datetime import time, datetime, date, timedelta
 import pytz
 import itertools
 
@@ -71,13 +71,17 @@ class TimeOffRequest(OrganizationOwned):
                 organization=self.organization,
                 start_date=self.start_date,
                 end_date=self.end_date,
-                start_time=time(0, 0),  # meaning they are not available
-                end_time=time(0, 0),
                 approved=True
             )
             av.save(approved=True)  # to mark as approved otherwise save method defaults to False on any changes
             self.availability = av
             self.save()
+
+            day_count = self.end_date - self.start_date + 1
+            print('day count is ', + str(day_count))
+            for single_date in (self.start_date + timedelta(n) for n in range(day_count)):
+                av.create_day_availability_record(day_of_week=single_date.weekday(),
+                                                  start_time=time(0, 0, 0), end_time=time(0, 0, 0))
 
     def reject(self):
         with transaction.atomic():
@@ -133,25 +137,70 @@ def time_in_range(start, end, x):
 
 class AvailabilityManager(models.Manager):
 
-    def is_user_available(self, user, date, start_time, end_time):
+    def is_user_available(self, user, date_, start_time, end_time):
         # Given a user, date and time, query if the user is available to work or not
         pass
 
-    def user_availability_for_date(self, user, date):
-        pass
-
     def check_shift(self, shift):
-        # Given a shift, check to see if conflicts exist
-        # Returns True if shift is ok, Returns False if conflict exists
-        # first get the relevant
+        """
+        Given a shift, return True if there are no availability conflicts and False if there are conflicts
 
-        pass
+        Note: a user always sets their availability in reference to their own timezone. Because we store
+        Availability ranges as dates and DayAvailability ranges as times (not datetimes), we cannot reliably
+        store this data in UTC. So in checking for conflicts, we first must convert the start_time and end_time
+        of the shift to the users timezone for accurate results (since we store it in the database as UTC).
 
-    def get_availability_for_date(self, user, date):
+        This can be refactored
+        """
+        start_time = shift.start_time.astimezone(tz=shift.user.userprofile.timezone)
+        end_time = shift.end_time.astimezone(tz=shift.user.userprofile.timezone)
+        shift_date = start_time.date() if start_time.date() == end_time.date() else None
+
+        # The code below works for both cases, this commented out code works if the start_time and end_time
+        # are on the same day.
+        # if shift_date:
+        #     # hurray the shift is on a single date from the users perspective and we only need to reference
+        #     # a single availability record
+        #     av = self.get_availability_for_date(user=shift.user, av_date=shift_date)
+        #
+        #     # if no availability record is present, we return True and assume the user is availabile
+        #     if av is None:
+        #         return True
+        #     if av.datetime_is_in_range(start_time) and av.datetime_is_in_range(end_time):
+        #         # if the shift start_time and end_time is within the Availability period or
+        #         # no Availability record exists
+        #         return True
+        #     return False
+        # else:
+        # The shift spans more than one day (from the perspective of the user's timezone) so
+        # we need to reference two potential availability records (they could be the same)
+
+        av1 = self.get_availability_for_date(user=shift.user, av_date=start_time.date())
+        av2 = self.get_availability_for_date(user=shift.user, av_date=end_time.date())
+
+        # if both None then we assume the user is available so we return True
+        if av1 is None and av2 is None:
+            return True
+
+        # if two availability records
+        if av1 and av2:
+            if av1.datetime_is_in_range(start_time) and av2.datetime_is_in_range(end_time):
+                return True
+        elif av1:
+            # if just av1 is present then we're only bound by the single Availability record
+            if av1.datetime_is_in_range(start_time):
+                return True
+        elif av2:
+            # if just av2 is present then we're only bound by the single Availability record
+            if av2.datetime_is_in_range(end_time):
+                return True
+        return False
+
+    def get_availability_for_date(self, user, av_date):
         # we want to ignore anything that hasn't yet been approved
         av = self.filter(approved=True)
         # see if there is any availability records that correspond for the specific date
-        av = av.filter(user=user, start_date__lte=date, end_date__gte=date)
+        av = av.filter(user=user, start_date__lte=av_date, end_date__gte=av_date)
 
         if av.exists():
             return av[0]  # only one record should ever exist matching this query
@@ -168,40 +217,30 @@ class AvailabilityManager(models.Manager):
 
 class Availability(OrganizationOwned):
     """
-    Represents when an employee is available to work.
+    Represents a date range when an employee is available to work.
 
     start_date
     end_date
         Refers to specific periods of time the availability is in effect for
         If BLANK or Null - then we assume it's 'general' or day to day availability and is in
         effect for all times not represented by an Availability instance with
-        start_date and end_date set.
+        start_date and end_date set. Only one blank/null record per user can exist.
     user
         Who the availability is for
 
-    start_time
-    end_time
-        The time each day the user is available to work
-        If it differs per day then we set these to null and create a DayAvailability record for each
-        day of the week in the switch_to_day_availability() method
-        When an employee is not available for the date or date range the start_time and end_time
-        will both be 00:00:00
+    If there is a related DayAvailability record for the day of the week belonging to this
+    Availability instance, then we use that availability information. If there isn't, then we
+    assume they are just available.
 
 
-    Important - when comparing start_time and end_time, we'll need to join them to the start_date and
-    end_date then localize in the users timezone to provide a meaningful response, otherwise we may
-    encounter edge cases
+    Important - for DayAvailability records, they have only times and not dates. We must join them
+    with the dates here (start_date and end_date) then translate the datetime object into the users
+    timezone to provide them with meaningful data.
 
     """
     start_date = models.DateField(blank=True, null=True)  # if blank/null we assume this is the users 'general'
     end_date = models.DateField(blank=True, null=True)    # availability aka 'day to day' availability
     user = models.ForeignKey('auth.User')
-
-    # if start time and end time we assume it to be each day for the range start_date to end_date
-    start_time = models.TimeField(blank=True, null=True)
-    end_time = models.TimeField(blank=True, null=True)
-    # otherwise we set it on a day of the week basis
-    # see DayAvailability model and switch_to_day_availability method
 
     approved = models.BooleanField(default=False)  # requires manager approval before coming into effect
 
@@ -217,20 +256,28 @@ class Availability(OrganizationOwned):
     def expired(self):
         # if end_date is past, return True else return False
         # can be used to purge the database of old availability records
-        availability_date = self.user.userprofile.timezone.localize(datetime.now())
-        return True if availability_date > self.end_date else False
+        # availability_date = self.user.userprofile.timezone.localize(datetime.now())
+        # end_date = self.user.userprofile.timezone.localize(datetime.combine(self.end_date, datetime.now().time()))
+
+        # This is basic hackish as different users around the world will experience different expiry
+        # so we'll just compare in UTC and add a time delta of 1 day to be reasonably sure it's actually
+        # expired
+        return True if datetime.now().date() > (self.end_date + timedelta(days=1)) else False
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, approved=False):
         # if modified, we need to get approval again
         if not approved:
             self.approved = False  # unless we're explicitly called approve()
-
         return super(Availability, self).save()
 
     def approve(self):
+        """
+        Organizations typically want to approve their employees new availability before it comes into effect.
+        @TODO - an auto approval mechanism based on Organization settings
+        """
         self.approved = True
-        self.save(approved=True)
+        self.save(approved=True)  # must call with approved=True , see save() method
 
     def clean(self):
         # FIXME - move to pre_save signal?
@@ -270,59 +317,48 @@ class Availability(OrganizationOwned):
                     overlap = test_overlap(av_list[avx].start_date, av_list[avx].end_date,
                                            av_list[avx+1].start_date, av_list[avx+1].end_date)
                     if overlap:
-                        raise ValidationError(_('Date ranges cannot overlap'))
+                        raise ValidationError(_('Date ranges cannot overlap.'))
                 except IndexError:
                     pass
 
-        # if there are multiple DayAvailability records for the same day of the week, the times should not
-        # overlap.
-        for day in self.dayavailability_set.all():
-            # NotImplemented yet
-            pass
-
-        if self.start_time and self.end_time:
-            if self.start_time > self.end_time:
-                raise ValidationError(_('Start time is invalid, start time must be before end time.'))
-
+        # start date must be before end date
         if self.start_date and self.end_date:
-            if self.start_date > self.end_date:
+            if self.start_date >= self.end_date:
                 raise ValidationError(_('Start date is invalid, start date must be before end date.'))
-
         return super(Availability, self).clean()
 
-    def switch_to_day_availability(self):
-        """
-        If user needs to define availability on a day of the week basis, this will create the associated
-        records required.
+    def create_day_availability_record(self, day_of_week, start_time=None, end_time=None):
+        DayAvailability.objects.create(
+            availability=self,
+            day_of_week=day_of_week,
+            start_time=start_time or time.min,
+            end_time=end_time or time.max
+        )
 
-        FIXME - This isn't entirely logical. An Availability date range might only be for a day or two
-        which doesn't necessitate creating records for each day of the week.
-        """
-        start_time = self.start_time or time.min  # use current start_time and end_time as default values
-        end_time = self.end_date or time.max  # otherwise use min and max
-        for day in range(0, 7):
-
-            DayAvailability.objects.create(
-                availability=self,
-                day_of_week=day,
-                start_time=start_time,
-                end_time=end_time
-            )
-        self.start_time = None
-        self.end_time = None
+    def reset_daily_availability(self):
+        for day in self.dayavailability_set.all():
+            day.delete()
+        self.clean()
         self.save()
 
-    def switch_to_general_availability(self):
-        """
-        If user wants to define availability in general (e.g. start time to end time for any day) this will
-        remove the day of the week records that were created.
-        """
-        records = self.dayavailability_set.all()
-        for record in records:
-            record.delete()
-        self.start_time = time.min  # some default value
-        self.end_time = time.max  # some default value
-        self.save()
+    def datetime_is_in_range(self, av_date):
+        # find the day of the week
+        # see if there's a DayAvailability instance
+        weekday = av_date.weekday()
+
+        # if within range of at least one DayAvailability record return True
+        # if not within range of at least one DayAvailability record return False
+        if self.dayavailability_set.filter(day_of_week=weekday).exists():
+            # do stuff
+            for day in self.dayavailability_set.filter(day_of_week=weekday):
+                if day.start_time <= av_date.time() <= day.end_time:
+                    return True
+            else:
+                # av_date not within at least one range so user is not available to work
+                return False
+        else:
+            # no DayAvailability records exists for this day of the week, so we assume the user is available
+            return True
 
 
 class DayAvailability(models.Model):
@@ -360,3 +396,18 @@ class DayAvailability(models.Model):
     @property
     def day(self):
         return self.CHOICES[self.day_of_week]  # FIXME this probably doesn't work
+
+    def __str__(self):
+        return 'DayAvailability for ' + str(self.availability.user.username)
+
+    def clean(self):
+        # if there are multiple DayAvailability records for the same day of the week, the times should not
+        # overlap.
+        # find any other records for this `availability` instance which have the same day_of_week
+        # if there is any overlap in time, raise ValidationError
+        # else we go on our way
+        day_a = DayAvailability.objects.filter(availability=self.availability, day_of_week=self.day_of_week)
+        if self.pk is None:
+            # add the current not-yet-saved instance to the list for bounds checking
+            pass
+        pass

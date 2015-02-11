@@ -9,8 +9,16 @@ from django.db.utils import IntegrityError
 from model_mommy import mommy
 
 from apps.ui.models import UserProfile
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, Location
+from apps.shifts.models import Shift, Schedule
 from .models import Availability, TimeOffRequest
+
+"""
+This code is all written to be run when Canada/Mountain is 7 hours behind UTC.
+With DST it's obviously not always 7 hours behind.
+
+Fix it up accordingly.
+"""
 
 
 class TestAvailabilityLogic(TestCase):
@@ -29,9 +37,7 @@ class TestAvailabilityLogic(TestCase):
         """
         av = Availability.objects.create(
             organization=self.org,
-            user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0)
+            user=self.user
         )
         av.approve()
         av.clean()
@@ -45,14 +51,21 @@ class TestAvailabilityLogic(TestCase):
         av = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(8, 30, 0),  # 8:30 AM
-            end_time=datetime.time(23, 30, 0),  # to 11:30 PM
             start_date=datetime.date(2015, 6, 1),  # June 1st
             end_date=datetime.date(2015, 6, 15)  # to June 15th
         )
         av.approve()
         av.clean()
         return av
+
+    def basic_schedule_setup(self):
+        """
+        Creates a basic schedule (using the org created in setUp)
+        :return: Schedule
+        """
+        loc = mommy.make(Location, organization=self.org)
+        sked = mommy.make(Schedule, organization=self.org, location=loc)
+        return sked
 
     def test_can_approve_availability_for_user(self):
         av = self.create_approved_availability_general_one()
@@ -65,43 +78,28 @@ class TestAvailabilityLogic(TestCase):
 
     def test_availability_has_start_and_end_time_but_no_dates(self):
         av = self.create_approved_availability_general_one()
-        self.assertEqual(av.start_time, datetime.time(9, 0, 0))
-        self.assertEqual(av.end_time, datetime.time(22, 0, 0))
         self.assertIsNone(av.start_date)
         self.assertIsNone(av.end_date)
 
     def test_manager_returns_availability_record_for_no_dates(self):
         av = self.create_approved_availability_general_one()
-        rec = Availability.objects.get_availability_for_date(user=self.user, date=datetime.datetime.now().date)
+        rec = Availability.objects.get_availability_for_date(user=self.user, av_date=datetime.datetime.now().date)
         self.assertEqual(model_to_dict(av), model_to_dict(rec))
 
     def test_manager_returns_availability_record_for_specific_dates(self):
         av = self.create_approved_availability_with_specific_dates()
-        rec = Availability.objects.get_availability_for_date(user=self.user, date=datetime.date(2015, 6, 1))
+        rec = Availability.objects.get_availability_for_date(user=self.user, av_date=datetime.date(2015, 6, 1))
         self.assertEqual(model_to_dict(av), model_to_dict(rec))
 
     def test_manager_returns_none_if_no_availability_records_exist(self):
-        av = Availability.objects.get_availability_for_date(user=self.user, date=datetime.date(2015, 6, 1))
+        av = Availability.objects.get_availability_for_date(user=self.user, av_date=datetime.date(2015, 6, 1))
         self.assertIsNone(av)
-
-    def test_start_time_after_end_time_raises_error(self):
-        # a start time after the end time should trigger a ValidationError
-        av = Availability.objects.create(
-            organization=self.org,
-            user=self.user,
-            start_time=datetime.time(22, 0, 0),
-            end_time=datetime.time(9, 0, 0)
-        )
-        av.approve()
-        self.assertRaises(ValidationError, av.clean)
 
     def test_start_date_after_end_date_raises_error(self):
         # a start date after the end date should trigger a ValidationError
         av = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 6, 15),
             end_date=datetime.date(2015, 6, 1)
         )
@@ -111,9 +109,7 @@ class TestAvailabilityLogic(TestCase):
     def test_two_availability_with_null_dates_raises_validation_error(self):
         av = Availability(
             organization=self.org,
-            user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0)
+            user=self.user
         )
         av.clean()
         av.save()
@@ -121,52 +117,25 @@ class TestAvailabilityLogic(TestCase):
         av1 = Availability(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0)
         )
         self.assertRaises(ValidationError, av1.clean)
 
     def test_two_availability_with_null_dates_raises_validation_error_post_save(self):
         av = Availability(
             organization=self.org,
-            user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0)
+            user=self.user
         )
         av.clean()
         av.save()
         self.assertGreater(av.pk, 0)
         av1 = Availability(
             organization=self.org,
-            user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0)
+            user=self.user
         )
         av1.save()
         # why doesn't this cause an IntegrityError because of unique_together = (('start_date', 'end_date', 'user'),)??
         # (None, None, self.user) == (None, None, self.user) == SAME SAME???
         self.assertRaises(ValidationError, av1.clean)
-
-    def test_switch_to_day_of_week_availability(self):
-        # we switch from using start_time and end_time to defining start_time and end_time
-        # for each day of the week rather than the entire range using DayAvailability records
-        av = self.create_approved_availability_general_one()
-        av.switch_to_day_availability()
-        # one DayAvailability for each day of the week
-        self.assertEqual(av.dayavailability_set.all().count(), 7)
-        self.assertIsNone(av.start_time)
-        self.assertIsNone(av.end_time)
-
-    def test_switch_back_to_general_non_day_of_week_availability(self):
-        # we switch from using DayAvailability records to defining start_time and end_time
-        # on the Availability instance to define our availability for each day in the range
-        av = self.create_approved_availability_general_one()
-        av.switch_to_day_availability()
-        av.switch_to_general_availability()
-        # no DayAvailability records
-        self.assertEqual(av.dayavailability_set.all().count(), 0)
-        self.assertIsNotNone(av.start_time)
-        self.assertIsNotNone(av.end_time)
 
     # only one per date range, disallow overlapping
 
@@ -175,8 +144,6 @@ class TestAvailabilityLogic(TestCase):
         av2 = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 6, 15),
             end_date=datetime.date(2015, 6, 20)
         )
@@ -187,8 +154,6 @@ class TestAvailabilityLogic(TestCase):
         av2 = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2014, 6, 15),
             end_date=datetime.date(2015, 6, 10)
         )
@@ -199,8 +164,6 @@ class TestAvailabilityLogic(TestCase):
         av2 = Availability(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2014, 6, 15),
             end_date=datetime.date(2015, 6, 10)
         )
@@ -211,8 +174,6 @@ class TestAvailabilityLogic(TestCase):
         av2 = Availability(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 6, 16),
             end_date=datetime.date(2015, 6, 20)
         )
@@ -221,8 +182,6 @@ class TestAvailabilityLogic(TestCase):
         av3 = Availability(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2014, 6, 17),
             end_date=datetime.date(2015, 6, 20)
         )
@@ -234,8 +193,6 @@ class TestAvailabilityLogic(TestCase):
         av2 = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 6, 16),
             end_date=datetime.date(2015, 6, 20)
         )
@@ -244,8 +201,6 @@ class TestAvailabilityLogic(TestCase):
         av3 = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2014, 6, 18),
             end_date=datetime.date(2015, 6, 21)
         )
@@ -257,8 +212,6 @@ class TestAvailabilityLogic(TestCase):
         av2 = Availability(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 6, 15),  # offending date range - 'av' above goes to the 15th
             end_date=datetime.date(2015, 6, 20)
         )
@@ -267,8 +220,6 @@ class TestAvailabilityLogic(TestCase):
         av3 = Availability.objects.create(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 8, 1),
             end_date=datetime.date(2015, 8, 20)
         )
@@ -276,14 +227,204 @@ class TestAvailabilityLogic(TestCase):
         av4 = Availability(
             organization=self.org,
             user=self.user,
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(22, 0, 0),
             start_date=datetime.date(2015, 7, 1),
             end_date=datetime.date(2015, 8, 1)
         )
         self.assertRaises(ValidationError, av4.clean)
 
-    # test manager gives ok when given shift or error
+    def test_no_day_availability_record_shift_check_true(self):
+        """
+        Any shift should pass a conflict check at this point since there's no DayAvailability records
+        to look up.
+        :return:
+        """
+        av = self.create_approved_availability_general_one()
+        sked = self.basic_schedule_setup()
+        shift = Shift.objects.create(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 1, 19, 0, 0, tzinfo=pytz.UTC),  # users local time is MST so 12 pm
+            end_time=datetime.datetime(2015, 6, 2, 0, 0, 0, tzinfo=pytz.UTC),  # 5 pm local time
+            published=True
+        )
+        check = Availability.objects.check_shift(shift=shift)
+        self.assertTrue(check)
+
+    def test_availability_with_specific_dates_shift_check_true_if_no_day_availability(self):
+        """
+        Availability within a specific date range that has no DayAvailability records should also just
+        always return True
+        :return:
+        """
+        av = self.create_approved_availability_with_specific_dates()
+        sked = self.basic_schedule_setup()
+        shift = Shift.objects.create(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 19, 0, 0, tzinfo=pytz.UTC),  # users local time is MST so 12 pm
+            end_time=datetime.datetime(2015, 6, 3, 0, 0, 0, tzinfo=pytz.UTC),  # 5 pm local time
+            published=True
+        )
+        check = Availability.objects.check_shift(shift)
+        self.assertTrue(check)
+
+    def test_availability_with_specific_dates_but_no_specific_day_availability_shows_no_conflict(self):
+        """
+        I feel like my test names will make no sense to an outside developer or even me in 6 months
+
+        Anyway this test has DayAvailability records but none that apply to the shift so it should always
+        return True (aka the user is available to work)
+        :return:
+        """
+        av = self.create_approved_availability_with_specific_dates()
+        sked = self.basic_schedule_setup()
+        av.create_day_availability_record(day_of_week=0)
+        shift = Shift.objects.create(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 19, 0, 0, tzinfo=pytz.UTC),  # users local time is MST so 12 pm
+            end_time=datetime.datetime(2015, 6, 3, 0, 0, 0, tzinfo=pytz.UTC),  # 5 pm local time
+            published=True
+        )
+        # This shift corresponds to day_of_weel=1 in the users local timezone: Canada/Mountain
+        # Therefore no availability record should exist for day_of_week=1, only day_of_week=0
+        # Meaning the user should show as available, e.g. check_shift(shift) should return True
+        check = Availability.objects.check_shift(shift)
+        self.assertTrue(check)
+
+    def test_multiple_availability_windows_for_same_day_of_week(self):
+        """
+        If we have more than one DayAvailability record for a specific day of the week and are searching for
+        the users availability, it should respect BOTH ranges specified.
+
+        Availability:
+        9 AM to 12 PM
+        3 PM to 6 PM
+
+        Shifts (validate):
+        These are all based on June 2015, DST is in effect so observing MDT (not MST) so 6 hours behind UTC not the normal 7
+        8 AM to 12 PM (fails validation as the user isn't available until 9 AM)
+        9 AM to 11 AM (passes because it's within the 9 AM to 12 PM window)
+        4 PM to 5 PM (passes because it's within the 3pm to 6pm window)
+        5 PM to 8 PM (fails because it's beyond the latest 6 PM window)
+        9 AM to 12 PM (passes because it's exactly within the 9 AM to 12 PM window)
+        9 AM to 11:59:59 AM (just for fun it clearly passes)
+
+        :return:
+        """
+        sked = self.basic_schedule_setup()
+        av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
+        for day in range(0, 7):
+            # Creates an availability record for each day from 9 AM to 12 PM and 3 PM to 6 PM
+            av.create_day_availability_record(day_of_week=day, start_time=datetime.time(9, 0, 0),
+                                              end_time=datetime.time(12, 0, 0))
+            av.create_day_availability_record(day_of_week=day, start_time=datetime.time(15, 0, 0),
+                                              end_time=datetime.time(18, 0, 0))
+
+        # ############ Shift 1 from 8 AM to 12 PM should fail validation
+        s1 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 14, 0, 0, tzinfo=pytz.UTC),  # users local time is MST so 8 AM
+            end_time=datetime.datetime(2015, 6, 2, 18, 0, 0, tzinfo=pytz.UTC),  # 12 pm local time
+            published=True
+        )
+        check1 = Availability.objects.check_shift(s1)
+        self.assertFalse(check1)  # 8 AM is too early so check should fail/be False
+
+        # ############ Shift 2 from 9 AM to 11 AM should pass validation
+        s2 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 15, 0, 0, tzinfo=pytz.UTC),
+            end_time=datetime.datetime(2015, 6, 2, 17, 0, 0, tzinfo=pytz.UTC),
+            published=True
+        )
+        check2 = Availability.objects.check_shift(s2)
+        self.assertTrue(check2)  # is within bounds of 9 AM to 12 PM so should pass/be True
+
+        # ############ Shift 3 from 4 PM to 5 PM should pass validation
+        s3 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 22, 0, 0, tzinfo=pytz.UTC),
+            end_time=datetime.datetime(2015, 6, 2, 23, 0, 0, tzinfo=pytz.UTC),
+            published=True
+        )
+        check3 = Availability.objects.check_shift(s3)
+        self.assertTrue(check3)  # is within bounds of 3 PM to 6 PM so should pass/be True
+
+        # ############ Shift 4 from 5 PM to 8 PM should fail validation
+        s4 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 23, 0, 0, tzinfo=pytz.UTC),
+            end_time=datetime.datetime(2015, 6, 3, 2, 0, 0, tzinfo=pytz.UTC),  # 02:00 next day but 8 PM loc time
+            published=True
+        )
+        check4 = Availability.objects.check_shift(s4)
+        self.assertFalse(check4)  # is past bounds of 3 PM to 6 PM so should fail/be False
+
+        # ############ Shift 5 from 9 AM to 12 PM should pass validation
+        s5 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 15, 0, 0, tzinfo=pytz.UTC),
+            end_time=datetime.datetime(2015, 6, 2, 18, 0, 0, tzinfo=pytz.UTC),
+            published=True
+        )
+        check5 = Availability.objects.check_shift(s5)
+        self.assertTrue(check5)  # is exactly within bounds of 9 AM to 12 PM so should pass/be True
+
+        # ############ Shift 5 from 9 AM to 11:59:59 AM should pass validation
+        s6 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 6, 2, 15, 0, 0, tzinfo=pytz.UTC),
+            end_time=datetime.datetime(2015, 6, 2, 17, 59, 59, tzinfo=pytz.UTC),
+            published=True
+        )
+        check6 = Availability.objects.check_shift(s6)
+        self.assertTrue(check6)  # is within bounds of 9 AM to 12 PM so should pass/be True
+
+    def test_expired_availability_shows_expired(self):
+        """
+        Availability records in the past should reflect that they are 'expired'
+        :return:
+        """
+        av = Availability.objects.create(
+            organization=self.org,
+            user=self.user,
+            start_date=datetime.date(2014, 6, 1),  # June 1st
+            end_date=datetime.date(2014, 6, 15)  # to June 15th
+        )
+        av.approve()
+        av.clean()
+        self.assertTrue(av.expired)
+
+    def test_non_expired_availability_shows_not_expired(self):
+        """
+        Availability records in the future should reflect that they are NOT 'expired'
+        :return:
+        """
+        av = Availability.objects.create(
+            organization=self.org,
+            user=self.user,
+            start_date=datetime.date(2018, 6, 1),  # June 1st
+            end_date=datetime.date(2018, 6, 15)  # to June 15th
+        )
+        av.approve()
+        av.clean()
+        self.assertFalse(av.expired)
 
 
 class TestTimeOffRequestLogic(TestCase):
