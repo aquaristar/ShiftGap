@@ -49,6 +49,7 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
         # filter by date range if selected
         from_ = self.request.GET.get('from', None)
         to = self.request.GET.get('to', None)
+        by_user = self.request.GET.get('byuser', None)
         if from_ and to:
             import datetime
             start = datetime.datetime.strptime(from_, '%Y-%m-%d')
@@ -69,7 +70,12 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
 
         self.from_ = start
         self.to = end
-        qs = qs.filter(start_time__gte=start, end_time__lte=end, published=True).order_by('start_time')
+        if not by_user:
+            qs = qs.filter(start_time__gte=start, end_time__lte=end, published=True).order_by('start_time')
+        else:
+            # for regroup_by to work we need to order by the user
+            qs = qs.filter(start_time__gte=start, end_time__lte=end, published=True).order_by('user')
+
         return OrganizationPermission(self.request).filter_object_permissions(qs)
 
     def get_context_data(self, **kwargs):
