@@ -11,7 +11,7 @@ from model_mommy import mommy
 from apps.ui.models import UserProfile
 from apps.organizations.models import Organization, Location
 from apps.shifts.models import Shift, Schedule
-from .models import Availability, TimeOffRequest
+from .models import Availability, TimeOffRequest, DayAvailability
 
 """
 This code is all written to be run when Canada/Mountain is 7 hours behind UTC.
@@ -435,17 +435,59 @@ class TestTimeOffRequestLogic(TestCase):
         up = mommy.make(UserProfile, organization=self.org, timezone=tz)
         self.user = up.user
 
+    def create_time_off_request(self):
+        request = TimeOffRequest(
+            organization=self.org,
+            start_date=datetime.date(2015, 8, 1),
+            end_date=datetime.date(2015, 9, 2),
+            user=self.user,
+            request_note='Pretty please...'
+        )
+        request.clean()
+        request.save()
+        return request
+
+    def create_time_off_request_for_two_days(self):
+        request = TimeOffRequest(
+            organization=self.org,
+            start_date=datetime.date(2015, 10, 1),
+            end_date=datetime.date(2015, 10, 2),
+            user=self.user,
+            request_note='Pretty please...'
+        )
+        request.clean()
+        request.save()
+        return request
+
     def test_approving_time_off_creates_availability_record(self):
         # approving a users time off should create an associated availability record
         # that reflects the time off
         # self.fail("Not implemented")
+        req = self.create_time_off_request()  # August 1st to September 1st
+        req.approve()
+        av = Availability.objects.get_availability_for_date(user=self.user, av_date=datetime.date(2015, 8, 2))
+        self.assertIsNotNone(av)  # FIXME this should probably check a lot more
+
+    def test_shift_raises_conflict_if_during_users_approved_time_off(self):
         pass
 
-    def test_approving_time_off_is_reflected_in_days_off_property(self):
-        pass
+    def test_approving_time_off_is_reflected_in_days_approved_property(self):
+        req = self.create_time_off_request_for_two_days()
+        req.approve()
+        self.assertEqual(req.days_approved, 2)
+        self.assertEqual(req.days_rejected, 0)
+        self.assertEqual(req.days_cancelled, 0)
 
     def test_rejecting_time_off_is_reflected_in_days_rejected_property(self):
-        pass
+        req = self.create_time_off_request_for_two_days()
+        req.reject()
+        self.assertEqual(req.days_rejected, 2)
+        self.assertEqual(req.days_approved, 0)
+        self.assertEqual(req.days_cancelled, 0)
 
     def test_cancelling_time_off_is_reflected_in_days_cancelled_property(self):
-        pass
+        req = self.create_time_off_request_for_two_days()
+        req.cancel_away()
+        self.assertEqual(req.days_rejected, 0)
+        self.assertEqual(req.days_approved, 0)
+        self.assertEqual(req.days_cancelled, 2)

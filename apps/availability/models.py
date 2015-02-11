@@ -32,24 +32,24 @@ class TimeOffRequest(OrganizationOwned):
     @property
     def days_approved(self):
         if self.status == 'A':
-            time_delta = self.end_date - self.start_date
-            return time_delta.days
+            time_delta = (self.end_date - self.start_date).days + 1
+            return time_delta
         else:
             return 0
 
     @property
     def days_rejected(self):
         if self.status == 'R':
-            time_delta = self.end_date - self.start_date
-            return time_delta.days
+            time_delta = (self.end_date - self.start_date).days + 1
+            return time_delta
         else:
             return 0
 
     @property
     def days_cancelled(self):
         if self.status == 'C':
-            time_delta = self.end_date - self.start_date
-            return time_delta.days
+            time_delta = (self.end_date - self.start_date).days + 1
+            return time_delta
         else:
             return 0
 
@@ -77,10 +77,20 @@ class TimeOffRequest(OrganizationOwned):
             self.availability = av
             self.save()
 
-            day_count = self.end_date - self.start_date + 1
-            print('day count is ', + str(day_count))
-            for single_date in (self.start_date + timedelta(n) for n in range(day_count)):
-                av.create_day_availability_record(day_of_week=single_date.weekday(),
+            day_count = (self.end_date - self.start_date).days + 1
+            days_of_week = set()
+
+            # we only want to create _one_ DayAvailability record for each day of the week so let's find out
+            # what days are represented in the range start_date to end_date inclusive (so we use a set)
+            for single_date in (self.start_date + timedelta(days=n) for n in range(day_count)):
+                days_of_week.add(single_date.weekday())
+
+                # once we already have all 7 days we don't need to continue anymore
+                if len(days_of_week) == 7:
+                    break
+
+            for day in days_of_week:
+                av.create_day_availability_record(day_of_week=day,
                                                   start_time=time(0, 0, 0), end_time=time(0, 0, 0))
 
     def reject(self):
@@ -92,7 +102,8 @@ class TimeOffRequest(OrganizationOwned):
     def cancel_away(self):
         # reverse the time away operation
         self.status = 'C'
-        self.availability.delete()
+        if self.availability:
+            self.availability.delete()
         self.save()
 
 
