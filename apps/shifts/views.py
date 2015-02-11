@@ -74,7 +74,7 @@ class ShiftListView(UserProfileRequiredMixin, ShiftBaseMixin, ListView):
             qs = qs.filter(start_time__gte=start, end_time__lte=end, published=True).order_by('start_time')
         else:
             # for regroup_by to work we need to order by the user
-            qs = qs.filter(start_time__gte=start, end_time__lte=end, published=True).order_by('user')
+            qs = qs.filter(start_time__gte=start, end_time__lte=end, published=True).order_by('user', 'start_time')
 
         return OrganizationPermission(self.request).filter_object_permissions(qs)
 
