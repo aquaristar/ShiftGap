@@ -339,12 +339,17 @@ class Availability(OrganizationOwned):
         return super(Availability, self).clean()
 
     def create_day_availability_record(self, day_of_week, start_time=None, end_time=None):
-        DayAvailability.objects.create(
-            availability=self,
-            day_of_week=day_of_week,
-            start_time=start_time or time.min,
-            end_time=end_time or time.max
-        )
+        try:
+            da = DayAvailability(
+                availability=self,
+                day_of_week=day_of_week,
+                start_time=start_time or time.min,
+                end_time=end_time or time.max
+            )
+            da.clean()
+            da.save()
+        except ValidationError:
+            raise ValidationError(_('Creating availability record for dates failed.'))
 
     def reset_daily_availability(self):
         for day in self.dayavailability_set.all():
@@ -411,14 +416,41 @@ class DayAvailability(models.Model):
     def __str__(self):
         return 'DayAvailability for ' + str(self.availability.user.username)
 
+    def test_overlap(self, dt1_st, dt1_end, dt2_st, dt2_end):
+        return dt1_st < dt2_end and dt1_end > dt2_st
+
     def clean(self):
+
+        if self.start_time > self.end_time:
+            raise ValidationError(_('Your start time must be before your end time.'))
+
         # if there are multiple DayAvailability records for the same day of the week, the times should not
         # overlap.
         # find any other records for this `availability` instance which have the same day_of_week
         # if there is any overlap in time, raise ValidationError
         # else we go on our way
         day_a = DayAvailability.objects.filter(availability=self.availability, day_of_week=self.day_of_week)
+
+        day_list = list(day_a)
+
+
         if self.pk is None:
             # add the current not-yet-saved instance to the list for bounds checking
-            pass
-        pass
+            day_list += [self]
+
+        #sort from lowest low bound to highest upper bound
+        day_list = sorted(day_list, key=lambda x: (x.start_time, x.end_time))
+
+        list_count = len(day_list)
+        # loop through the intervals from the lowest
+        for timex in range(0, list_count):
+            try:
+                # If the interval after this one starts before this one ends,
+                # raise a validation error
+                overlap = self.test_overlap(day_list[timex].start_time, day_list[timex].end_time,
+                                            day_list[timex + 1].start_time, day_list[timex + 1].end_time)
+                if overlap:
+                    raise ValidationError(_('Start time and end time cannot overlap with other'
+                                            'availabilities you have set.'))
+            except IndexError:
+                pass

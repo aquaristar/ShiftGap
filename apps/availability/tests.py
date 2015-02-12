@@ -396,6 +396,68 @@ class TestAvailabilityLogic(TestCase):
         check6 = Availability.objects.check_shift(s6)
         self.assertTrue(check6)  # is within bounds of 9 AM to 12 PM so should pass/be True
 
+    def test_day_availability_record_creation_does_not_allow_overlap(self):
+        """
+        Multiple day availability records for the same day should not allow time overlap.
+
+        e.g. You should not be able to create availability records for 9AM to 12 PM and 10AM - 1 PM because they overlap.
+        :return:
+        """
+        sked = self.basic_schedule_setup()
+        av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
+
+        da = DayAvailability(
+            availability=av,
+            day_of_week=0,
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(17, 0, 0)
+        )
+        da.clean()
+        da.save()
+
+        da2 = DayAvailability(
+            availability=av,
+            day_of_week=0,
+            start_time=datetime.time(16, 0, 0),
+            end_time=datetime.time(17, 0, 0)
+        )
+        self.assertRaises(ValidationError, da2.clean)  # this overlaps with 9 AM to 5 PM we just saved above
+
+        da3 = DayAvailability(
+            availability=av,
+            day_of_week=0,
+            start_time=datetime.time(17, 0, 0),
+            end_time=datetime.time(18, 0, 0)
+        )
+        da3.clean()
+        da3.save()
+
+    def test_day_availability_record_creation_does_not_start_time_before_end_time(self):
+        """
+        DayAvailability records where time ranges don't make sense should raise ValidationError
+        10 AM to 9 AM -> should fail
+
+        :return:
+        """
+        sked = self.basic_schedule_setup()
+        av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
+        # for day in range(0, 7):
+            # Creates an availability record for each day 10 AM to 9 AM which should be invalid
+        da = DayAvailability(
+            availability=av,
+            day_of_week=0,
+            start_time=datetime.time(10, 0, 0),
+            end_time=datetime.time(9, 0, 0)
+        )
+        self.assertRaises(ValidationError, da.clean)
+        da2 = DayAvailability(
+            availability=av,
+            day_of_week=0,
+            start_time=datetime.time(10, 0, 0),
+            end_time=datetime.time(10, 0, 0)
+        )
+        da2.clean()
+
     def test_expired_availability_shows_expired(self):
         """
         Availability records in the past should reflect that they are 'expired'
