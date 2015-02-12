@@ -417,6 +417,16 @@ class DayAvailability(models.Model):
         return 'DayAvailability for ' + str(self.availability.user.username)
 
     def test_overlap(self, dt1_st, dt1_end, dt2_st, dt2_end):
+        """
+        Exclusive for allows start and end values to be the same but not overlap
+        e.g. 9 AM - 10 AM and 10AM to 1030 AM return False
+            9 AM - 10 AM and 9:59:59 AM to 1030 AM return True
+        :param dt1_st: first date or time START
+        :param dt1_end: first date or time END
+        :param dt2_st: second date or time START
+        :param dt2_end: second date or time END
+        :return: True if ovelap occurs, False if not
+        """
         return dt1_st < dt2_end and dt1_end > dt2_st
 
     def clean(self):
