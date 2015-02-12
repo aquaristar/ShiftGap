@@ -1,0 +1,401 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-02-12 17:10+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: apps/availability/models.py:18
+msgid "Pending"
+msgstr ""
+
+#: apps/availability/models.py:19
+msgid "Approved"
+msgstr ""
+
+#: apps/availability/models.py:20
+msgid "Rejected"
+msgstr ""
+
+#: apps/availability/models.py:21
+msgid "Cancelled"
+msgstr ""
+
+#: apps/availability/models.py:59
+msgid "End time cannot be before start time."
+msgstr ""
+
+#: apps/availability/models.py:264
+#, python-format
+msgid "Availability for: %s"
+msgstr ""
+
+#: apps/availability/models.py:299 apps/availability/models.py:302
+msgid ""
+"Only only general availability record is permitted. Edit the existing record."
+msgstr ""
+
+#: apps/availability/models.py:331
+msgid "Date ranges cannot overlap."
+msgstr ""
+
+#: apps/availability/models.py:338
+msgid "Start date is invalid, start date must be before end date."
+msgstr ""
+
+#: apps/availability/models.py:393
+msgid "Monday"
+msgstr ""
+
+#: apps/availability/models.py:394
+msgid "Tuesday"
+msgstr ""
+
+#: apps/availability/models.py:395
+msgid "Wednesday"
+msgstr ""
+
+#: apps/availability/models.py:396
+msgid "Thursday"
+msgstr ""
+
+#: apps/availability/models.py:397
+msgid "Friday"
+msgstr ""
+
+#: apps/availability/models.py:398
+msgid "Saturday"
+msgstr ""
+
+#: apps/availability/models.py:399
+msgid "Sunday"
+msgstr ""
+
+#: apps/organizations/templates/organizations/organization_profile.html:16
+#: apps/organizations/templates/organizations/organization_profile_update.html:13
+#: apps/phone/templates/phone/phone_confirm.html:9
+#: apps/shifts/templates/shifts/shift_publish_range.html:22
+msgid "Submit"
+msgstr ""
+
+#: apps/organizations/templates/organizations/organization_profile.html:20
+msgid ""
+"WARNING: This will create a new company. If you're signing up and would like "
+"join an existing company:"
+msgstr ""
+
+#: apps/organizations/templates/organizations/organization_profile.html:21
+msgid "Please click here"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:13
+msgid "Username"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:14
+msgid "First Name"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:15
+msgid "Last Name"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:16
+msgid "Position"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:17
+msgid "Phone"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:18
+msgid "Phone Confirmed"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:19
+msgid "Reconfirm Phone"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:33
+msgid "Reconfirm"
+msgstr ""
+
+#: apps/organizations/templates/organizations/user_list.html:42
+msgid "Add New User"
+msgstr ""
+
+#: apps/organizations/views.py:141
+msgid "You should be receiving a confirmation text shortly!"
+msgstr ""
+
+#: apps/organizations/views.py:144
+msgid ""
+"You need to have a phone number saved to your profile before you can confirm "
+"it,"
+msgstr ""
+
+#: apps/organizations/views.py:171
+msgid ""
+"You can only modify your own profile. To modify another users profile,you "
+"must be an admin or manager."
+msgstr ""
+
+#: apps/organizations/views.py:176
+msgid "You can't modify a user profile from another organization."
+msgstr ""
+
+#: apps/phone/tasks.py:25
+#, python-format
+msgid "Your ShiftGap activation code is %s"
+msgstr ""
+
+#: apps/phone/templates/phone/phone_confirm.html:7
+msgid "Confirmation Code"
+msgstr ""
+
+#: apps/phone/views.py:59
+#, python-format
+msgid "Hi %s, your number is now confirmed!"
+msgstr ""
+
+#: apps/phone/views.py:70
+#, python-format
+msgid "Your next shift is at %s"
+msgstr ""
+
+#: apps/phone/views.py:74 apps/phone/views.py:92
+msgid "It doesn't look like you have any upcoming shifts."
+msgstr ""
+
+#: apps/phone/views.py:88
+#, python-format
+msgid "Your next two shifts are: %s and %s"
+msgstr ""
+
+#: apps/phone/views.py:96
+msgid ""
+"Sorry but your number isn't recognized. If you think this is a mistake "
+"contact your manager."
+msgstr ""
+
+#: apps/phone/views.py:107
+msgid "It looks like you haven't sent a confirmation to your phone yet."
+msgstr ""
+
+#: apps/phone/views.py:111
+msgid "Invalid confirmation code entered, please try again."
+msgstr ""
+
+#: apps/phone/views.py:117
+msgid "Your phone number is now verified!"
+msgstr ""
+
+#: apps/shifts/models.py:85
+msgid "from"
+msgstr ""
+
+#: apps/shifts/models.py:85
+msgid "to"
+msgstr ""
+
+#: apps/shifts/models.py:107
+msgid "Start time cannot occur after end time."
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:21
+msgid "Everyone"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:24
+msgid "Just Me"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:35
+msgid "Admin Options"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:36
+msgid "Publish Shifts by Range"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:37
+msgid "Unpublish Shifts by Range"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:56
+msgid "Shift Details"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:63
+msgid "Publish"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:64
+msgid "Un-Publish"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:65
+msgid "Delete"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:67
+msgid "Close"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:69
+msgid "Save changes"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:80
+msgid "Employee"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:81
+msgid "Start typing first name"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:85
+msgid "Time: "
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:86
+msgid "e.g. 9am - 5pm / 9-17"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_calendar.html:91
+msgid "Save"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_list.html:16
+msgid "View My Shifts Only"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_list.html:33
+#: apps/shifts/templates/shifts/shift_list.html:68
+msgid "Time"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_list.html:34
+#: apps/shifts/templates/shifts/shift_list.html:70
+msgid "Name"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_list.html:64
+msgid "Total hours:"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_list.html:69
+#: apps/ui/templates/welcome.html:21
+msgid "Date"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_list.html:96
+msgid "Group by User"
+msgstr ""
+
+#: apps/shifts/templates/shifts/shift_publish_range.html:18
+msgid "Select Date Range"
+msgstr ""
+
+#: apps/ui/models.py:15
+msgid "User"
+msgstr ""
+
+#: apps/ui/models.py:16
+msgid "Manager"
+msgstr ""
+
+#: apps/ui/models.py:17
+msgid "Administrator"
+msgstr ""
+
+#: apps/ui/models.py:26
+msgid "Full number including country code and +"
+msgstr ""
+
+#: apps/ui/models.py:39
+msgid "Profile for "
+msgstr ""
+
+#: apps/ui/templates/__base.html:13 apps/ui/templates/welcome.html:8
+msgid "Welcome to ShiftGap"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:7
+msgid "Toggle navigation"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:12
+msgid "ShiftGap"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:17 apps/ui/templates/_navbar.html.py:26
+msgid "Home"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:18
+msgid "Staff"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:19
+msgid "Shifts"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:21
+msgid "New Shift"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:22
+msgid "Calendar"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:27
+msgid "Login"
+msgstr ""
+
+#: apps/ui/templates/_navbar.html:28
+msgid "Sign Up"
+msgstr ""
+
+#: apps/ui/templates/welcome.html:8
+msgid "Intelligent scheduling for everyone."
+msgstr ""
+
+#: apps/ui/templates/welcome.html:17
+msgid "Your Upcoming Shifts"
+msgstr ""
+
+#: apps/ui/templates/welcome.html:22
+msgid "Start"
+msgstr ""
+
+#: apps/ui/templates/welcome.html:23
+msgid "End"
+msgstr ""
+
+#: apps/ui/templates/welcome.html:56
+msgid "Login or sign up above."
+msgstr ""
+
+#: apps/ui/templates/welcome.html:57
+msgid ""
+"If you're joining an existing company, make sure you know the company ID "
+"ahead of time."
+msgstr ""
+
+#: apps/ui/templates/welcome.html:58
+msgid "You can get it from your manager or whomever does your scheduling."
+msgstr ""
