@@ -117,7 +117,7 @@ class TestAvailabilityLogic(TestCase):
         av1 = Availability(
             organization=self.org,
             user=self.user,
-        )
+            )
         self.assertRaises(ValidationError, av1.clean)
 
     def test_two_availability_with_null_dates_raises_validation_error_post_save(self):
@@ -442,7 +442,7 @@ class TestAvailabilityLogic(TestCase):
         sked = self.basic_schedule_setup()
         av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
         # for day in range(0, 7):
-            # Creates an availability record for each day 10 AM to 9 AM which should be invalid
+        # Creates an availability record for each day 10 AM to 9 AM which should be invalid
         da = DayAvailability(
             availability=av,
             day_of_week=0,
@@ -487,6 +487,25 @@ class TestAvailabilityLogic(TestCase):
         av.approve()
         av.clean()
         self.assertFalse(av.expired)
+
+    def test_resetting_daily_availability_clears_day_availability_records(self):
+        """
+        Calling reset_daily_availability() on any Availability instance should remove any associated
+        DayAvailability records
+        :return:
+        """
+        av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
+        for day in range(0, 7):
+            DayAvailability.objects.create(
+                availability=av,
+                day_of_week=0,
+                start_time=datetime.time(10, 0, 0),
+                end_time=datetime.time(11, 0, 0)
+            )
+        # FIXME is this even a valid test? do we need to 're-get' the av instance from the database for
+        # actual confirmation and use TransactionTestCase for this test class?
+        av.reset_daily_availability()
+        self.assertCountEqual(av.dayavailability_set.all(), [])
 
 
 class TestTimeOffRequestLogic(TransactionTestCase):
