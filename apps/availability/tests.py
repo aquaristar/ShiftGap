@@ -396,6 +396,55 @@ class TestAvailabilityLogic(TestCase):
         check6 = Availability.objects.check_shift(s6)
         self.assertTrue(check6)  # is within bounds of 9 AM to 12 PM so should pass/be True
 
+    def test_multi_day_shift_validations_uses_multiple_availability_records(self):
+        """
+        A shift that spans multiple days can have multiple availability records (one corresponding to
+        each day).
+
+        Most common situation is for businesses that are open late
+            e.g. shift from 8 PM to 2 AM
+
+        Although unrealistic let's also sets a shift that spans several days...
+            e.g. shift from 8 PM to (+2 days later) 8 PM
+
+        :return:
+        """
+        sked = self.basic_schedule_setup()
+        av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
+        for day in range(0, 7):
+            # Creates an availability record for each day from 9 AM to 12 PM and 3 PM to 6 PM
+            av.create_day_availability_record(day_of_week=day, av_start_time=datetime.time(9, 0, 0),
+                                              av_end_time=datetime.time(12, 0, 0))
+            av.create_day_availability_record(day_of_week=day, av_start_time=datetime.time(15, 0, 0),
+                                              av_end_time=datetime.time(18, 0, 0))
+
+        av2 = Availability.objects.create(
+            organization=self.org,
+            user=self.user,
+            start_date=datetime.date(2015, 5, 1),  # June 1st
+            end_date=datetime.date(2015, 5, 31)  # to June 15th
+        )
+        av2.approve()
+        av2.clean()
+        for day in range(0, 7):
+            av2.create_day_availability_record(day_of_week=day, av_start_time=datetime.time(8, 0, 0),
+                                               av_end_time=datetime.time(23, 0, 0))
+
+        # ############ Shift 5 from 9 AM to 12 pm from may 30 to june 5 should fail validation
+        s6 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 5, 30, 13, 0, 0, tzinfo=pytz.UTC),  # (2015, 5, 30, 15, 0, 0,
+            end_time=datetime.datetime(2015, 6, 2, 18, 0, 0, tzinfo=pytz.UTC),
+            published=True
+        )
+        check6 = Availability.objects.check_shift(s6)
+        self.assertFalse(check6)  # is within bounds of 9 AM to 12 PM so should pass/be True
+        """
+        This is a failing test case that needs to be fixed. See models.py:165 FIXME.
+        """
+
     def test_day_availability_record_creation_does_not_allow_overlap(self):
         """
         Multiple day availability records for the same day should not allow time overlap.

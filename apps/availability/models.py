@@ -162,7 +162,10 @@ class AvailabilityManager(models.Manager):
         store this data in UTC. So in checking for conflicts, we first must convert the start_time and end_time
         of the shift to the users timezone for accurate results (since we store it in the database as UTC).
 
-        This can be refactored
+        @FIXME - this method only checks the start and end times against availability
+        obviously this is not sufficient as someone could still be scheduled if they are
+        available at the start and end time of their shift but not at some point in its duration
+        NEED TO CHECK FOR THE ENTIRE RANGE
         """
         start_time = shift.start_time.astimezone(tz=shift.user.userprofile.timezone)
         end_time = shift.end_time.astimezone(tz=shift.user.userprofile.timezone)
