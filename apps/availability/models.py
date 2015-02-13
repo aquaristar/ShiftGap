@@ -104,6 +104,7 @@ class TimeOffRequest(OrganizationOwned):
         self.status = 'C'
         if self.availability:
             self.availability.delete()
+            self.availability = None
         self.save()
 
 

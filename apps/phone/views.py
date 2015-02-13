@@ -85,7 +85,7 @@ def record_incoming_sms(request):
                 if 1 in shifts:
                     shift2 = shifts[1].start_time.astimezone(shifts[1].user.userprofile.timezone)
                     shift2 = shift2.strftime('%l:%M%p on %b %d')
-                msg = _('Your next two shifts are: %s and %s') % (shift1, str(shift2))
+                msg = _('Your next two shifts are: %s and %s') % (str(shift1), str(shift2))
                 r.message(msg=msg)
             else:
                 # if userprofile exists send they don't have any incoming shifts

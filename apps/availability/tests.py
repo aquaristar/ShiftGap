@@ -1,7 +1,7 @@
 import pytz
 import datetime
 
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.forms.models import model_to_dict
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
@@ -489,7 +489,7 @@ class TestAvailabilityLogic(TestCase):
         self.assertFalse(av.expired)
 
 
-class TestTimeOffRequestLogic(TestCase):
+class TestTimeOffRequestLogic(TransactionTestCase):
 
     def setUp(self):
         tz = pytz.timezone('Canada/Mountain')
@@ -553,3 +553,24 @@ class TestTimeOffRequestLogic(TestCase):
         self.assertEqual(req.days_rejected, 0)
         self.assertEqual(req.days_approved, 0)
         self.assertEqual(req.days_cancelled, 2)
+
+    def test_end_date_before_start_date_raises_validation_error(self):
+        request = TimeOffRequest(
+            organization=self.org,
+            start_date=datetime.date(2015, 10, 1),
+            end_date=datetime.date(2014, 10, 2),
+            user=self.user,
+            request_note='Pretty please...'
+        )
+        self.assertRaises(ValidationError, request.clean)
+
+    def test_cancelling_away_removes_availability_record(self):
+        # cancelling away should remove the availability record
+        req = self.create_time_off_request()  # August 1st to September 1st
+        req.approve()
+        av = Availability.objects.get_availability_for_date(user=self.user, av_date=datetime.date(2015, 8, 2))
+        availability_id = req.availability_id  # original availability pk that was created
+        req.cancel_away()
+        req = TimeOffRequest.objects.get(pk=req.pk)
+        self.assertIsNone(req.availability)
+        self.assertRaises(Availability.DoesNotExist, Availability.objects.get, pk=availability_id)
