@@ -91,7 +91,7 @@ class TimeOffRequest(OrganizationOwned):
 
             for day in days_of_week:
                 av.create_day_availability_record(day_of_week=day,
-                                                  start_time=time(0, 0, 0), end_time=time(0, 0, 0))
+                                                  av_start_time=time(0, 0, 0), av_end_time=time(0, 0, 0))
 
     def reject(self):
         with transaction.atomic():
@@ -166,7 +166,7 @@ class AvailabilityManager(models.Manager):
         """
         start_time = shift.start_time.astimezone(tz=shift.user.userprofile.timezone)
         end_time = shift.end_time.astimezone(tz=shift.user.userprofile.timezone)
-        shift_date = start_time.date() if start_time.date() == end_time.date() else None
+        # shift_date = start_time.date() if start_time.date() == end_time.date() else None
 
         # The code below works for both cases, this commented out code works if the start_time and end_time
         # are on the same day.
@@ -339,13 +339,25 @@ class Availability(OrganizationOwned):
                 raise ValidationError(_('Start date is invalid, start date must be before end date.'))
         return super(Availability, self).clean()
 
-    def create_day_availability_record(self, day_of_week, start_time=None, end_time=None):
+    def create_day_availability_record(self, day_of_week, av_start_time=None, av_end_time=None):
+        """
+        >>bool(datetime.time(0, 0)) == False
+        True <--- somewhat unintuitive
+        """
+        if av_start_time is None:
+            st = time.min
+        else:
+            st = av_start_time
+        if av_end_time is None:
+            et = time.max
+        else:
+            et = av_end_time
         try:
             da = DayAvailability(
                 availability=self,
                 day_of_week=day_of_week,
-                start_time=start_time or time.min,
-                end_time=end_time or time.max
+                start_time=st,
+                end_time=et
             )
             da.clean()
             da.save()

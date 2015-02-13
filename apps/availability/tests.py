@@ -319,10 +319,10 @@ class TestAvailabilityLogic(TestCase):
         av = self.create_approved_availability_with_specific_dates()  # June 1st to June 15th, 2015
         for day in range(0, 7):
             # Creates an availability record for each day from 9 AM to 12 PM and 3 PM to 6 PM
-            av.create_day_availability_record(day_of_week=day, start_time=datetime.time(9, 0, 0),
-                                              end_time=datetime.time(12, 0, 0))
-            av.create_day_availability_record(day_of_week=day, start_time=datetime.time(15, 0, 0),
-                                              end_time=datetime.time(18, 0, 0))
+            av.create_day_availability_record(day_of_week=day, av_start_time=datetime.time(9, 0, 0),
+                                              av_end_time=datetime.time(12, 0, 0))
+            av.create_day_availability_record(day_of_week=day, av_start_time=datetime.time(15, 0, 0),
+                                              av_end_time=datetime.time(18, 0, 0))
 
         # ############ Shift 1 from 8 AM to 12 PM should fail validation
         s1 = Shift(
@@ -540,17 +540,54 @@ class TestTimeOffRequestLogic(TransactionTestCase):
         request.save()
         return request
 
+    def basic_schedule_setup(self):
+        """
+        Creates a basic schedule (using the org created in setUp)
+        :return: Schedule
+        """
+        loc = mommy.make(Location, organization=self.org)
+        sked = mommy.make(Schedule, organization=self.org, location=loc)
+        return sked
+
     def test_approving_time_off_creates_availability_record(self):
         # approving a users time off should create an associated availability record
         # that reflects the time off
         # self.fail("Not implemented")
-        req = self.create_time_off_request()  # August 1st to September 1st
+        req = self.create_time_off_request()  # August 1st to September 2nd
         req.approve()
         av = Availability.objects.get_availability_for_date(user=self.user, av_date=datetime.date(2015, 8, 2))
         self.assertIsNotNone(av)  # FIXME this should probably check a lot more
 
     def test_shift_raises_conflict_if_during_users_approved_time_off(self):
-        pass
+        req = self.create_time_off_request()  # August 1st to September 2nd, 2015
+        req.approve()
+        sked = self.basic_schedule_setup()
+
+        # This is the user being scheduled during their approved vacation
+        s1 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 8, 15, 14, 0, 0, tzinfo=pytz.UTC),  # users local time is MST so 8 AM
+            end_time=datetime.datetime(2015, 8, 15, 18, 0, 0, tzinfo=pytz.UTC),  # 12 pm local time
+            published=True
+        )
+        s1.save()
+        check = Availability.objects.check_shift(s1)
+        self.assertFalse(check)  # during users vacation so shows conflict
+
+        # This is the user being scheduled right after their vacation ends
+        s2 = Shift(
+            organization=self.org,
+            user=self.user,
+            schedule=sked,
+            start_time=datetime.datetime(2015, 9, 3, 14, 0, 0, tzinfo=pytz.UTC),  # users local time is MST so 8 AM
+            end_time=datetime.datetime(2015, 9, 3, 18, 0, 0, tzinfo=pytz.UTC),  # 12 pm local time
+            published=True
+        )
+        s2.save()
+        check2 = Availability.objects.check_shift(s2)
+        self.assertTrue(check2)  # after users vacation so the shift shows no conflict
 
     def test_approving_time_off_is_reflected_in_days_approved_property(self):
         req = self.create_time_off_request_for_two_days()
