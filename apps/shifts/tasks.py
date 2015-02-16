@@ -32,7 +32,7 @@ def new_shift_reminder(shift_id):
     if shift.user.userprofile.phone_reminders:
         if shift.user.userprofile.phone_number:
             start = shift.start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
-            # send a txt message
+            # Translators: This is a text message limited to 139 characters.
             message = "%s you've been added to a shift on %s" % shift.user.username, start
             phone = shift.user.userprofile.phone_number
             msg = twilio_client.messages.create(
@@ -58,6 +58,7 @@ def twenty_four_hour_reminder():
                     user_start_time = shift.start_time.astimezone(shift.user.userprofile.timezone)
                     # user_start_time = arrow.get(user_start_time).humanize()
                     user_start_time = user_start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
+                    # Translators: This is a text message limited to 139 characters.
                     message = "%s, you are scheduled to work %s" % (shift.user.first_name, user_start_time)
                     sms = twilio_client.messages.create(
                         body=message,
@@ -85,6 +86,7 @@ def ninety_minute_reminder():
                     user_start_time = shift.start_time.astimezone(shift.user.userprofile.timezone)
                     # user_start_time = arrow.get(user_start_time).humanize()
                     user_start_time = user_start_time.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
+                    # Translators: This is a text message limited to 139 characters.
                     message = "%s, you have a shift starting soon %s." % (shift.user.first_name, user_start_time)
                     sms = twilio_client.messages.create(
                         body=message,

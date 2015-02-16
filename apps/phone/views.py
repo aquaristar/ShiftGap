@@ -56,6 +56,7 @@ def record_incoming_sms(request):
             up.save()
         if ups:
             name = ups[0].user.first_name
+            # Translators: This is a text message limited to 139 characters.
             msg = _('Hi %s, your number is now confirmed!') % name
             r.message(msg=msg)
 
@@ -67,10 +68,12 @@ def record_incoming_sms(request):
             if shifts:
                 start = shifts[0].start_time.astimezone(shifts[0].user.userprofile.timezone)
                 start = start.strftime('%l:%M%p on %b %d')  # ' 1:36PM on Oct 18'
+                # Translators: This is a text message limited to 139 characters.
                 msg = _('Your next shift is at %s') % start
                 r.message(msg=msg)
             else:
                 # if userprofile exists send they don't have any incoming shifts
+                # Translators: This is a text message limited to 139 characters.
                 msg = _('It doesn\'t look like you have any upcoming shifts.')
                 r.message(msg=msg)
     if message == 'next2':
@@ -85,14 +88,17 @@ def record_incoming_sms(request):
                 if 1 in shifts:
                     shift2 = shifts[1].start_time.astimezone(shifts[1].user.userprofile.timezone)
                     shift2 = shift2.strftime('%l:%M%p on %b %d')
+                # Translators: This is a text message limited to 139 characters.
                 msg = _('Your next two shifts are: %s and %s') % (str(shift1), str(shift2))
                 r.message(msg=msg)
             else:
                 # if userprofile exists send they don't have any incoming shifts
+                # Translators: This is a text message limited to 139 characters.
                 msg = _('It doesn\'t look like you have any upcoming shifts.')
                 r.message(msg=msg)
 
     if not UserProfile.objects.filter(phone_number=request.POST['From']).exists():
+        # Translators: This is a text message limited to 139 characters.
         msg = _('Sorry but your number isn\'t recognized. If you think this is a mistake contact your manager.')
         r.message(msg=msg)
     return r

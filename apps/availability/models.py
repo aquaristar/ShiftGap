@@ -77,6 +77,9 @@ class TimeOffRequest(OrganizationOwned):
             self.availability = av
             self.save()
 
+            # FIXME this is all bullshit - time off should not create availability record
+            # but availability _should_ consult time off __first__
+
             day_count = (self.end_date - self.start_date).days + 1
             days_of_week = set()
 

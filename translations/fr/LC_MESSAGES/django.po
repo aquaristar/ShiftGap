@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-02-12 17:10+0000\n"
+"POT-Creation-Date: 2015-02-16 17:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,50 +38,63 @@ msgstr ""
 msgid "End time cannot be before start time."
 msgstr ""
 
-#: apps/availability/models.py:264
+#: apps/availability/models.py:271
 #, python-format
 msgid "Availability for: %s"
 msgstr ""
 
-#: apps/availability/models.py:299 apps/availability/models.py:302
+#: apps/availability/models.py:306 apps/availability/models.py:309
 msgid ""
 "Only only general availability record is permitted. Edit the existing record."
 msgstr ""
 
-#: apps/availability/models.py:331
+#: apps/availability/models.py:338
 msgid "Date ranges cannot overlap."
 msgstr ""
 
-#: apps/availability/models.py:338
+#: apps/availability/models.py:345
 msgid "Start date is invalid, start date must be before end date."
 msgstr ""
 
-#: apps/availability/models.py:393
+#: apps/availability/models.py:371
+msgid "Creating availability record for dates failed."
+msgstr ""
+
+#: apps/availability/models.py:417
 msgid "Monday"
 msgstr ""
 
-#: apps/availability/models.py:394
+#: apps/availability/models.py:418
 msgid "Tuesday"
 msgstr ""
 
-#: apps/availability/models.py:395
+#: apps/availability/models.py:419
 msgid "Wednesday"
 msgstr ""
 
-#: apps/availability/models.py:396
+#: apps/availability/models.py:420
 msgid "Thursday"
 msgstr ""
 
-#: apps/availability/models.py:397
+#: apps/availability/models.py:421
 msgid "Friday"
 msgstr ""
 
-#: apps/availability/models.py:398
+#: apps/availability/models.py:422
 msgid "Saturday"
 msgstr ""
 
-#: apps/availability/models.py:399
+#: apps/availability/models.py:423
 msgid "Sunday"
+msgstr ""
+
+#: apps/availability/models.py:454
+msgid "Your start time must be before your end time."
+msgstr ""
+
+#: apps/availability/models.py:482
+msgid ""
+"Start time and end time cannot overlap with otheravailabilities you have set."
 msgstr ""
 
 #: apps/organizations/templates/organizations/organization_profile.html:16
@@ -166,40 +179,45 @@ msgstr ""
 msgid "Confirmation Code"
 msgstr ""
 
-#: apps/phone/views.py:59
+#. Translators: This is a text message limited to 139 characters.
+#: apps/phone/views.py:60
 #, python-format
 msgid "Hi %s, your number is now confirmed!"
 msgstr ""
 
-#: apps/phone/views.py:70
+#. Translators: This is a text message limited to 139 characters.
+#: apps/phone/views.py:72
 #, python-format
 msgid "Your next shift is at %s"
 msgstr ""
 
-#: apps/phone/views.py:74 apps/phone/views.py:92
+#. Translators: This is a text message limited to 139 characters.
+#: apps/phone/views.py:77 apps/phone/views.py:97
 msgid "It doesn't look like you have any upcoming shifts."
 msgstr ""
 
-#: apps/phone/views.py:88
+#. Translators: This is a text message limited to 139 characters.
+#: apps/phone/views.py:92
 #, python-format
 msgid "Your next two shifts are: %s and %s"
 msgstr ""
 
-#: apps/phone/views.py:96
+#. Translators: This is a text message limited to 139 characters.
+#: apps/phone/views.py:102
 msgid ""
 "Sorry but your number isn't recognized. If you think this is a mistake "
 "contact your manager."
 msgstr ""
 
-#: apps/phone/views.py:107
+#: apps/phone/views.py:113
 msgid "It looks like you haven't sent a confirmation to your phone yet."
 msgstr ""
 
-#: apps/phone/views.py:111
+#: apps/phone/views.py:117
 msgid "Invalid confirmation code entered, please try again."
 msgstr ""
 
-#: apps/phone/views.py:117
+#: apps/phone/views.py:123
 msgid "Your phone number is now verified!"
 msgstr ""
 
