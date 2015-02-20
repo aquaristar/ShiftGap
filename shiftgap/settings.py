@@ -95,7 +95,7 @@ if PRODUCTION:
             'CONN_MAX_AGE': 900,
             'OPTIONS': {
                 'sslmode': 'verify-full',
-                'sslrootcert': 'shiftgap/rds-ssl-ca-cert.pem'
+                'sslrootcert': 'shiftgap/rds-combined-ca-bundle.pem'
             }
         },
         }
