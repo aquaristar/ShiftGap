@@ -12,6 +12,7 @@ from apps.ui.models import UserProfile
 from apps.organizations.models import Organization, Location
 from apps.shifts.models import Shift, Schedule
 from .models import Availability, TimeOffRequest, DayAvailability
+from .views import TimeOffRequestListingForUser
 
 """
 This code is all written to be run when Canada/Mountain is 7 hours behind UTC.
@@ -679,3 +680,14 @@ class TestTimeOffRequestLogic(TransactionTestCase):
         req = TimeOffRequest.objects.get(pk=req.pk)
         self.assertIsNone(req.availability)
         self.assertRaises(Availability.DoesNotExist, Availability.objects.get, pk=availability_id)
+
+
+class RequestViewTests(TestCase):
+
+    def setUp(self):
+        self.view = TimeOffRequestListingForUser()
+
+    def test_attrs(self):
+        # test very basic attributes of the view
+        self.assertEqual(self.view.template_name, 'availability/requests.html')
+        self.assertEqual(self.view.model, TimeOffRequest)

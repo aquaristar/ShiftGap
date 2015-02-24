@@ -1,0 +1,44 @@
+{% extends "__base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+    <div class="container">
+
+        {% if user.admin_or_manager %}
+            {# Display a link to go to pending requests  #}
+            {# You have __ pending requests #}
+
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <h3>{% trans "Your Requests" %}</h3>
+
+                <table class="table table-striped">
+
+                    <thead>
+                    <tr>
+                        <th>{% trans "Dates" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Cancel Request" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        {% for object in object_list %}
+                            <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
+                            <td>{{ object.status }}</td>
+                        {% endfor %}
+                    </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+            <button class="btn btn-primary">{% trans "Request Time Off" %}</button>
+        </div>
+
+    </div>
+
+{% endblock content %}
