@@ -77,25 +77,6 @@ class TimeOffRequest(OrganizationOwned):
             self.availability = av
             self.save()
 
-            # FIXME this is all bullshit - time off should not create availability record
-            # but availability _should_ consult time off __first__
-
-            day_count = (self.end_date - self.start_date).days + 1
-            days_of_week = set()
-
-            # we only want to create _one_ DayAvailability record for each day of the week so let's find out
-            # what days are represented in the range start_date to end_date inclusive (so we use a set)
-            for single_date in (self.start_date + timedelta(days=n) for n in range(day_count)):
-                days_of_week.add(single_date.weekday())
-
-                # once we already have all 7 days we don't need to continue anymore
-                if len(days_of_week) == 7:
-                    break
-
-            for day in days_of_week:
-                av.create_day_availability_record(day_of_week=day,
-                                                  av_start_time=time(0, 0, 0), av_end_time=time(0, 0, 0))
-
     def reject(self):
         with transaction.atomic():
             self.approved = False
@@ -200,6 +181,11 @@ class AvailabilityManager(models.Manager):
         if av1 is None and av2 is None:
             return True
 
+        if av1:
+            if av1.timeoffrequest_set.count() > 0:
+                # If a TimeOffRecord exists then the user has approved time off and is not available for scheduling
+                return False
+
         # if two availability records
         if av1 and av2:
             if av1.datetime_is_in_range(start_time) and av2.datetime_is_in_range(end_time):
@@ -237,14 +223,15 @@ class Availability(OrganizationOwned):
     """
     Represents a date range when an employee is available to work.
 
-    start_date
-    end_date
+    **start_date**
+    **end_date**
         Refers to specific periods of time the availability is in effect for
         If BLANK or Null - then we assume it's 'general' or day to day availability and is in
         effect for all times not represented by an Availability instance with
         start_date and end_date set. Only one blank/null record per user can exist.
     user
         Who the availability is for
+
 
     If there is a related DayAvailability record for the day of the week belonging to this
     Availability instance, then we use that availability information. If there isn't, then we

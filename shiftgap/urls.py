@@ -16,6 +16,7 @@ from apps.shifts.views import ShiftListCreateUpdateAPIView, ShiftListFilteredAPI
 urlpatterns = patterns('',
 
     url(r'^rest-auth/', include('rest_auth.urls')),
+    (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', TemplateView.as_view(template_name='welcome.html'), name='home'),
 
