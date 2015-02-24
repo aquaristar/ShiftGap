@@ -57,6 +57,7 @@ INSTALLED_APPS = (
     'rest_auth',
     'django_twilio',
     'djcelery',
+    'waffle',
 
     # project apps
     'apps.ui',
@@ -78,6 +79,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.locale.LocaleMiddleware',
 
     'django.contrib.admindocs.middleware.XViewMiddleware',  # for admindocs
+    'waffle.middleware.WaffleMiddleware',  # for django-waffle
     'apps.middleware.timezone.set_tz.SetUsersTimezoneMiddleware',
     'apps.middleware.timezone.set_tz.TimezoneMiddleware',
 )

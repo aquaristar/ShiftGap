@@ -1,22 +1,25 @@
 Django>=1.7.4
 django-debug-toolbar==1.2.2
 django-secure==1.0.1
-psycopg2==2.5.4
+psycopg2==2.6
 pytz==2014.10
 waitress==0.8.9
-newrelic==2.42.0.35
+newrelic==2.44.0.36
 dj-database-url
-django-allauth==0.19.0
-django-timezone-field==1.1
+django-allauth==0.19.1
+django-timezone-field==1.2
 django-braces==1.4.0
 arrow==0.5.0
-djangorestframework==3.0.4
+djangorestframework==3.0.5
 whitenoise==1.0.6
 django-twilio==0.8.0
 
 # external
 django-cors-headers==1.0.0
 django-rest-auth==0.3.4
+
+# feature switching
+django-waffle==0.10.1
 
 # tasks
 celery==3.1.17
