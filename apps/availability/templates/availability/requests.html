@@ -1,5 +1,6 @@
 {% extends "__base.html" %}
 {% load i18n %}
+{% load static from staticfiles %}
 
 {% block content %}
 
@@ -36,9 +37,12 @@
                 </table>
 
             </div>
-            <button class="btn btn-primary">{% trans "Request Time Off" %}</button>
+            <button id="requestTimeOff" class="btn btn-primary">{% trans "Request Time Off" %}</button>
         </div>
 
     </div>
 
 {% endblock content %}
+
+{% block tail %}
+{% endblock tail %}
