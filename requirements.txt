@@ -1,4 +1,4 @@
-Django>=1.7.4
+Django==1.7.5
 django-debug-toolbar==1.2.2
 django-secure==1.0.1
 psycopg2==2.6
@@ -9,7 +9,7 @@ dj-database-url
 django-allauth==0.19.1
 django-timezone-field==1.2
 django-braces==1.4.0
-arrow==0.5.0
+arrow==0.5.4
 djangorestframework==3.0.5
 whitenoise==1.0.6
 django-twilio==0.8.0
