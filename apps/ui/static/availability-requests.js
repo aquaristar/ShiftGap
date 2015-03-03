@@ -57,7 +57,6 @@ $(function () {
         //$('#datetimepicker7').val();
 
         // show UX feedback
-        alert('CLicked!');
     });
 
 });

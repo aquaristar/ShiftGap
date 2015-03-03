@@ -47,7 +47,6 @@
                                         <td>{{ object.user.first_name }}</td>
                                         <td>{{ object.get_status_display }}</td>
                                         <td><button onclick="sg_cancelTimeOffRequest({{ object.pk }})" class="btn btn-sm">{% trans "Cancel" %}</button></td>
-                                        <td>{{ object.pk }}</td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>

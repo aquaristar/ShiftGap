@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from apps.organizations.models import OrganizationOwned
+from apps.availability.tasks import (notify_time_off_request_approved, notify_time_off_request_cancelled,
+                                     notify_time_off_request_rejected)
 
 
 class TimeOffRequest(OrganizationOwned):
@@ -79,12 +81,14 @@ class TimeOffRequest(OrganizationOwned):
             av.save(approved=True)  # to mark as approved otherwise save method defaults to False on any changes
             self.availability = av
             self.save()
+            notify_time_off_request_approved(self.pk)
 
     def reject(self):
         with transaction.atomic():
             self.approved = False
             self.status = 'R'
             self.save()
+            notify_time_off_request_rejected(self.pk)
 
     def cancel_away(self):
         # reverse the time away operation
@@ -93,6 +97,7 @@ class TimeOffRequest(OrganizationOwned):
             self.availability.delete()
             self.availability = None
         self.save()
+        notify_time_off_request_cancelled(self.pk)
 
 
 # Issue: Maintain employee availability in a simple yet complete way.
