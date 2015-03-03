@@ -18,8 +18,8 @@
             <ul class="nav nav-tabs" role="tablist" id="requests">
                 <li role="presentation" class="active"><a href="#home" aria-controls="home">{% trans "Your Requests" %}</a></li>
                 {% if user.userprofile.admin_or_manager %}
-                <li role="presentation"><a href="#pending" aria-controls="pending">{% trans "Pending Requests" %}</a></li>
-                <li role="presentation"><a href="#approved" aria-controls="approved">{% trans "Approved Requests" %}</a></li>
+                    <li role="presentation"><a href="#pending" aria-controls="pending">{% trans "Pending Requests" %}</a></li>
+                    <li role="presentation"><a href="#approved" aria-controls="approved">{% trans "Approved Requests" %}</a></li>
                 {% endif %}
             </ul>
 
@@ -42,21 +42,81 @@
                                 </thead>
                                 <tbody>
                                 {% for object in object_list %}
-                                <tr>
+                                    <tr>
                                         <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
                                         <td>{{ object.user.first_name }}</td>
                                         <td>{{ object.get_status_display }}</td>
                                         <td><button onclick="sg_cancelTimeOffRequest({{ object.pk }})" class="btn btn-sm">{% trans "Cancel" %}</button></td>
                                         <td>{{ object.pk }}</td>
-                                </tr>
+                                    </tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <div role="tabpanel" class="tab-pane fade" id="pending">Pending...</div>
-                <div role="tabpanel" class="tab-pane fade" id="approved">Pending...</div>
+
+                <!-- Pending Request -->
+                <div role="tabpanel" class="tab-pane fade" id="pending">
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="table table-striped">
+
+                                <thead>
+                                <tr>
+                                    <th>{% trans "Dates" %}</th>
+                                    <th>{% trans "Employee" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Reject Request" %}</th>
+                                    <th>{% trans "Approve Request" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for object in pending %}
+                                    <tr>
+                                        <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
+                                        <td>{{ object.user.first_name }}</td>
+                                        <td>{{ object.get_status_display }}</td>
+                                        <td><button onclick="sg_rejectTimeOffRequest({{ object.pk }})" class="btn btn-sm">{% trans "Reject" %}</button></td>
+                                        <td><button onclick="sg_approveTimeOffRequest({{ object.pk }})" class="btn btn-sm">{% trans "Approve" %}</button></td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approved Requests -->
+                <div role="tabpanel" class="tab-pane fade" id="approved">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="table table-striped">
+
+                                <thead>
+                                <tr>
+                                    <th>{% trans "Dates" %}</th>
+                                    <th>{% trans "Employee" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Cancel Request" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for object in approved %}
+                                    <tr>
+                                        <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
+                                        <td>{{ object.user.first_name }}</td>
+                                        <td>{{ object.get_status_display }}</td>
+                                        <td><button onclick="sg_cancelTimeOffRequest({{ object.pk }})" class="btn btn-sm">{% trans "Cancel" %}</button></td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
@@ -73,13 +133,13 @@
                         <div class="form-group">
                             <div class='input-group date' id='datetimepicker6'>
                                 <input id="datetime6text" type='text' class="form-control" />
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <div class='input-group date' id='datetimepicker7'>
                                 <input id="datetime7text" type='text' class="form-control" />
-                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
                             </div>
                         </div>
 

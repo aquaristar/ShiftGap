@@ -62,16 +62,44 @@ $(function () {
 
 });
 
-function sg_cancelTimeOffRequest(el) {
+function sg_cancelTimeOffRequest(pk) {
     $.post(
         "cancel_time_off_request/",
         {
-            request_pk: el
+            request_pk: pk
         },
         function (suc) {
             alert("Time off request has been cancelled.");
         }
     ).fail(function (err) {
             alert("Could not cancel time off request. Please contact support for assistance.")
-        })
+        });
+}
+
+function sg_rejectTimeOffRequest(pk) {
+    $.post(
+        "reject_time_off_request/",
+        {
+            request_pk: pk
+        },
+        function (suc) {
+            alert("Time off request has been rejected.");
+        }
+    ).fail(function (err) {
+            alert("Could not reject time off request. Please contact support for assistance.")
+        });
+}
+
+function sg_approveTimeOffRequest(pk) {
+    $.post(
+        "approve_time_off_request/",
+        {
+            request_pk: pk
+        },
+        function (suc) {
+            alert("Time off request has been approved.");
+        }
+    ).fail(function (err) {
+            alert("Could not approve time off request. Please contact support for assistance.")
+        });
 }

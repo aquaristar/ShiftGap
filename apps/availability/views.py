@@ -49,9 +49,9 @@ class TimeOffRequestListing(UserProfileRequiredMixin, TimeOffRequestListingBaseM
         context['admin_or_manager'] = str(True if self.request.user.userprofile.admin_or_manager else False)
         if self.request.user.userprofile.admin_or_manager:
             context['pending'] = TimeOffRequest.objects.filter(organization=self.request.user.userprofile.organization,
-                                                               status='P')
+                                                               status='P', start_date__gte=datetime.datetime.now().date())
             context['approved'] = TimeOffRequest.objects.filter(organization=self.request.user.userprofile.organization,
-                                                                status='A')
+                                                                status='A', start_date__gte=datetime.datetime.now().date())
         return context
 
     def get_queryset(self):
@@ -95,5 +95,30 @@ def submit_time_off_request(request):
 def cancel_time_off_request(request):
     time_off_request = request.POST['request_pk']
     time_off_request = TimeOffRequest.objects.get(pk=time_off_request)
-    time_off_request.cancel_away()
+    if not request.user.userprofile.admin_or_manager and time_off_request.user != request.user:
+        raise SuspiciousOperation
+    else:
+        time_off_request.cancel_away()
+    return JsonResponse({"result": "ok"})
+
+@require_POST
+def approve_time_off_request(request):
+    time_off_request = request.POST['request_pk']
+    time_off_request = TimeOffRequest.objects.get(pk=time_off_request)
+    # must be admin or manager
+    if not request.user.userprofile.admin_or_manager:
+        raise SuspiciousOperation
+    else:
+        time_off_request.approve()
+    return JsonResponse({"result": "ok"})
+
+@require_POST
+def reject_time_off_request(request):
+    time_off_request = request.POST['request_pk']
+    time_off_request = TimeOffRequest.objects.get(pk=time_off_request)
+    # must be admin or manager
+    if not request.user.userprofile.admin_or_manager:
+        raise SuspiciousOperation
+    else:
+        time_off_request.reject()
     return JsonResponse({"result": "ok"})
