@@ -12,7 +12,7 @@ from apps.ui.models import UserProfile
 from apps.organizations.models import Organization, Location
 from apps.shifts.models import Shift, Schedule
 from .models import Availability, TimeOffRequest, DayAvailability
-from .views import TimeOffRequestListingForUser
+from .views import TimeOffRequestListing
 
 """
 This code is all written to be run when Canada/Mountain is 7 hours behind UTC.
@@ -599,6 +599,16 @@ class TestTimeOffRequestLogic(TransactionTestCase):
         sked = mommy.make(Schedule, organization=self.org, location=loc)
         return sked
 
+    def test_requesting_time_off_in_past_raises_validation_error(self):
+        request = TimeOffRequest(
+            organization=self.org,
+            start_date=datetime.date(2014, 10, 1),
+            end_date=datetime.date(2014, 10, 2),
+            user=self.user,
+            request_note='Pretty please...'
+        )
+        self.assertRaises(ValidationError, request.clean)
+
     def test_approving_time_off_creates_availability_record(self):
         # approving a users time off should create an associated availability record
         # that reflects the time off
@@ -685,7 +695,7 @@ class TestTimeOffRequestLogic(TransactionTestCase):
 class RequestViewTests(TestCase):
 
     def setUp(self):
-        self.view = TimeOffRequestListingForUser()
+        self.view = TimeOffRequestListing()
 
     def test_attrs(self):
         # test very basic attributes of the view

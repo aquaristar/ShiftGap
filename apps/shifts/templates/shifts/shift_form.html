@@ -1,32 +1,45 @@
 {% extends "__base.html" %}
 
 {% block content %}
+    <div class="container">
 
-    <div class="row">
+        <div class="row">
 
 
-            <hr>
-        <div class="form-group">
-            <form action="." method="post">{% csrf_token %}
-                {{ form.errors }}
-                <br />
-                {{ form.start_time.label_tag }}
-                <input type="text" id="id_start_time" name="start_time" data-date-format="YYYY-MM-DD HH:mm:00">
-                {{ form.end_time.label_tag }}
-                <input type="text" id="id_end_time" name="end_time" data-date-format="YYYY-MM-DD HH:mm:00">
+            <div class="col-md-12">
 
-                {{ form.schedule.label_tag }}
-                {{ form.schedule }}
-                {{ form.user.label_tag }}
-                {{ form.user }}
-                {{ form.organization }}
+                <hr>
+                <div class="form-group">
+                    <form action="." method="post">{% csrf_token %}
+                        {{ form.errors }}
+                        <br />
 
-                <input type="submit" name="Submit">
-            </form>
+                        <div class="input-group date">
+                            {{ form.start_time.label_tag }}
+                            <input type="text" id="id_start_time" name="start_time" data-date-format="YYYY-MM-DD HH:mm:00">
+                        </div>
 
+                        <div class="input-group date">
+                            {{ form.end_time.label_tag }}
+                            <input type="text" id="id_end_time" name="end_time" data-date-format="YYYY-MM-DD HH:mm:00">
+                        </div>
+
+                        <div class="input-group">
+                            {{ form.schedule.label_tag }}
+                            {{ form.schedule }}
+                            {{ form.user.label_tag }}
+                            {{ form.user }}
+                            {{ form.organization }}
+                        </div>
+
+
+                        <input type="submit" name="Submit">
+                    </form>
+
+                </div>
+
+            </div>
         </div>
-
-
     </div>
 
 
@@ -34,13 +47,13 @@
 
 {% block tail %}
 
-<script>
-$(document).ready(
-        $(function () {
-            $('#id_start_time').datetimepicker();
-            $('#id_end_time').datetimepicker();
-        })
-)
-</script>
+    <script>
+        $(document).ready(
+                $(function () {
+                    $('#id_start_time').datetimepicker();
+                    $('#id_end_time').datetimepicker();
+                })
+        )
+    </script>
 
 {% endblock tail %}

@@ -12,37 +12,132 @@
 
         {% endif %}
 
-        <div class="row">
-            <div class="col-md-12">
-                <h3>{% trans "Your Requests" %}</h3>
+        <div role="tabpanel">
 
-                <table class="table table-striped">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist" id="requests">
+                <li role="presentation" class="active"><a href="#home" aria-controls="home">{% trans "Your Requests" %}</a></li>
+                <li role="presentation"><a href="#pending" aria-controls="pending">{% trans "Pending Requests" %}</a></li>
+            </ul>
 
-                    <thead>
-                    <tr>
-                        <th>{% trans "Dates" %}</th>
-                        <th>{% trans "Status" %}</th>
-                        <th>{% trans "Cancel Request" %}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        {% for object in object_list %}
-                            <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
-                            <td>{{ object.status }}</td>
-                        {% endfor %}
-                    </tr>
-                    </tbody>
 
-                </table>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane fade in active" id="home">
 
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="table table-striped">
+
+                                <thead>
+                                <tr>
+                                    <th>{% trans "Dates" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Cancel Request" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    {% for object in object_list %}
+                                        <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
+                                        <td>{{ object.get_status_display }}</td>
+                                        <td><button class="btn btn-sm">{% trans "Cancel" %}</button></td>
+                                    {% endfor %}
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="pending">Pending...</div>
             </div>
-            <button id="requestTimeOff" class="btn btn-primary">{% trans "Request Time Off" %}</button>
+
+
+
+
         </div>
 
+
+        <div class="row">
+
+            <div class="col-md-4">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">{% trans "Request Time Off" %}</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class='input-group date' id='datetimepicker6'>
+                                <input id="datetime6text" type='text' class="form-control" />
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class='input-group date' id='datetimepicker7'>
+                                <input id="datetime7text" type='text' class="form-control" />
+                <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group text">
+                                <input type="text" class="form-control" placeholder="Request note... (optional)" />
+                            </div>
+
+                        </div>
+                        <div class="form-group">
+                            <div id="textRequest" class="input-group text"></div>
+                        </div>
+                    </div>
+                    <div class="panel-footer"><input id="submitRequest" type="submit" name="Submit"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock content %}
 
 {% block tail %}
+    <script>
+        var sg_users = {{ users|safe }};
+        var sg_user = {{ user.pk }};
+        // represents whether the user has admin or manager privileges
+        var sg_admin_or_manager = "{{ admin_or_manager|safe }}";
+
+        // ------------- begin AJAX setup
+
+        // make ajax calls using csrf token automatically
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        // ------------- end AJAX setup
+
+    </script>
+    <script src="{% static "availability-requests.js" %}"></script>
 {% endblock tail %}

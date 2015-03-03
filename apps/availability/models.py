@@ -57,6 +57,9 @@ class TimeOffRequest(OrganizationOwned):
         # end date must not be before start date
         if self.end_date < self.start_date:
             raise ValidationError(_("End time cannot be before start time."))
+        # must not be in the past
+        if self.start_date < datetime.now().date():
+            raise ValidationError(_("You cannot request time off in the past."))
 
     def approve(self):
         # Approve the request for time off and create an associated Availability record to reflect that
