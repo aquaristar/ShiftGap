@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.views.generic import ListView
 from django.views.decorators.http import require_POST
 from django.http.response import JsonResponse
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, SuspiciousOperation
 from django.contrib.auth.models import User
 
 from .models import TimeOffRequest
@@ -47,7 +47,16 @@ class TimeOffRequestListing(UserProfileRequiredMixin, TimeOffRequestListingBaseM
         context = super(TimeOffRequestListing, self).get_context_data(**kwargs)
         context['users'] = list_of_employees(request=self.request)
         context['admin_or_manager'] = str(True if self.request.user.userprofile.admin_or_manager else False)
+        if self.request.user.userprofile.admin_or_manager:
+            context['pending'] = TimeOffRequest.objects.filter(organization=self.request.user.userprofile.organization,
+                                                               status='P')
+            context['approved'] = TimeOffRequest.objects.filter(organization=self.request.user.userprofile.organization,
+                                                                status='A')
         return context
+
+    def get_queryset(self):
+        qs = super(TimeOffRequestListing, self).get_queryset()
+        return qs.filter(user=self.request.user, start_date__gte=datetime.datetime.now().date()).order_by('start_date')
 
 
 @require_POST
@@ -63,8 +72,9 @@ def submit_time_off_request(request):
     except ValueError:
         return JsonResponse({"result": "invalid data"}, status=400)
 
+    # if not admin or manager, request must be for the user him or herself
     if not request.user.userprofile.admin_or_manager and request.user.pk != user:
-        raise PermissionError
+        raise SuspiciousOperation
 
     time_off_request = TimeOffRequest(
         organization=request.user.userprofile.organization,
@@ -73,10 +83,17 @@ def submit_time_off_request(request):
         user=User.objects.get(pk=user),
         request_note=note
     )
-    # if not admin or manager, request must be for the user him or herself
+
     try:
         time_off_request.clean()
         time_off_request.save()
         return JsonResponse({"result": "ok"})
     except ValidationError as e:
-        return JsonResponse(e.__str__())
+        return JsonResponse({"result": e.__str__()}, status=422)
+
+@require_POST
+def cancel_time_off_request(request):
+    time_off_request = request.POST['request_pk']
+    time_off_request = TimeOffRequest.objects.get(pk=time_off_request)
+    time_off_request.cancel_away()
+    return JsonResponse({"result": "ok"})

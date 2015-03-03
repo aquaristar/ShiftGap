@@ -49,7 +49,9 @@ $(function () {
                 $('#datetime7text').val('');
                 $('#requestNote').val('');
             }
-        );
+        ).fail(function (err) {
+                alert("Could not complete request: " + err.responseJSON.result);
+            });
         // clear the fields
 
         //$('#datetimepicker7').val();
@@ -57,4 +59,19 @@ $(function () {
         // show UX feedback
         alert('CLicked!');
     });
+
 });
+
+function sg_cancelTimeOffRequest(el) {
+    $.post(
+        "cancel_time_off_request/",
+        {
+            request_pk: el
+        },
+        function (suc) {
+            alert("Time off request has been cancelled.");
+        }
+    ).fail(function (err) {
+            alert("Could not cancel time off request. Please contact support for assistance.")
+        })
+}

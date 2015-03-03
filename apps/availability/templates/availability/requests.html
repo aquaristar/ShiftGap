@@ -17,9 +17,12 @@
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist" id="requests">
                 <li role="presentation" class="active"><a href="#home" aria-controls="home">{% trans "Your Requests" %}</a></li>
+                {% if user.userprofile.admin_or_manager %}
                 <li role="presentation"><a href="#pending" aria-controls="pending">{% trans "Pending Requests" %}</a></li>
                 <li role="presentation"><a href="#approved" aria-controls="approved">{% trans "Approved Requests" %}</a></li>
+                {% endif %}
             </ul>
+
 
 
             <div class="tab-content">
@@ -32,6 +35,7 @@
                                 <thead>
                                 <tr>
                                     <th>{% trans "Dates" %}</th>
+                                    <th>{% trans "Employee" %}</th>
                                     <th>{% trans "Status" %}</th>
                                     <th>{% trans "Cancel Request" %}</th>
                                 </tr>
@@ -40,8 +44,10 @@
                                 {% for object in object_list %}
                                 <tr>
                                         <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
+                                        <td>{{ object.user.first_name }}</td>
                                         <td>{{ object.get_status_display }}</td>
-                                        <td><button class="btn btn-sm">{% trans "Cancel" %}</button></td>
+                                        <td><button onclick="sg_cancelTimeOffRequest({{ object.pk }})" class="btn btn-sm">{% trans "Cancel" %}</button></td>
+                                        <td>{{ object.pk }}</td>
                                 </tr>
                                 {% endfor %}
                                 </tbody>
