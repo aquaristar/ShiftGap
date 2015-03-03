@@ -1,4 +1,5 @@
 $(function () {
+    "use strict";
     // Initialize all tabs
 
     $('#requests a').click(function (e) {
@@ -26,7 +27,8 @@ $(function () {
     $(sg_users).each(function () {
         if (this.id == sg_user) {
             sel.append($('<option>').attr('value', this.id).attr('selected', 'selected').text(this.name));
-        } else {
+        } else if (sg_admin_or_manager === "True") {
+            // If the user is an admin or manager we also include the other employees
             sel.append($('<option>').attr('value', this.id).text(this.name));
         }
     });
@@ -51,8 +53,5 @@ $(function () {
         // show UX feedback
         alert('CLicked!');
     });
-
-
-
 });
 
