@@ -37,13 +37,13 @@
                                 </tr>
                                 </thead>
                                 <tbody>
+                                {% for object in object_list %}
                                 <tr>
-                                    {% for object in object_list %}
                                         <td>{{ object.start_date|date }} {% trans "to" %} {{ object.end_date|date }}</td>
                                         <td>{{ object.get_status_display }}</td>
                                         <td><button class="btn btn-sm">{% trans "Cancel" %}</button></td>
-                                    {% endfor %}
                                 </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -52,10 +52,6 @@
                 <div role="tabpanel" class="tab-pane fade" id="pending">Pending...</div>
                 <div role="tabpanel" class="tab-pane fade" id="approved">Pending...</div>
             </div>
-
-
-
-
         </div>
 
 
@@ -80,14 +76,12 @@
                 <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <div class="input-group text">
-                                <input type="text" class="form-control" placeholder="Request note... (optional)" />
-                            </div>
 
-                        </div>
                         <div class="form-group">
                             <div id="textRequest" class="input-group text"></div>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="requestNote" class="form-control" placeholder="{% trans "Request note... (optional)" %}"></textarea>
                         </div>
                     </div>
                     <div class="panel-footer"><input id="submitRequest" type="submit" name="Submit"></div>

@@ -40,18 +40,21 @@ $(function () {
             {
                 start_date: $('#datetime6text').val(),
                 end_date: $('#datetime7text').val(),
-                user: $('#request-for-user').val()
+                user: $('#request-for-user').val(),
+                note: $('#requestNote').val()
             },
             function (suc) {
-                alert("success!");
+                alert("Your request for time off has been recorded!");
+                $('#datetime6text').val('');
+                $('#datetime7text').val('');
+                $('#requestNote').val('');
             }
         );
         // clear the fields
-        //$('#datetimepicker6').val();
+
         //$('#datetimepicker7').val();
 
         // show UX feedback
         alert('CLicked!');
     });
 });
-

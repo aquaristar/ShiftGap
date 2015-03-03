@@ -52,12 +52,16 @@ class TimeOffRequestListing(UserProfileRequiredMixin, TimeOffRequestListingBaseM
 
 @require_POST
 def submit_time_off_request(request):
+    try:
+        year, month, day = request.POST['start_date'].split('-')
+        start_date = datetime.date(int(year), int(month), int(day))
+        eyear, emonth, eday = request.POST['end_date'].split('-')
+        end_date = datetime.date(int(eyear), int(emonth), int(eday))
+        user = request.POST['user']
+        note = request.POST.get('note', '')
 
-    year, month, day = request.POST['start_date'].split('-')
-    start_date = datetime.date(int(year), int(month), int(day))
-    eyear, emonth, eday = request.POST['end_date'].split('-')
-    end_date = datetime.date(int(eyear), int(emonth), int(eday))
-    user = request.POST['user']
+    except ValueError:
+        return JsonResponse({"result": "invalid data"}, status=400)
 
     if not request.user.userprofile.admin_or_manager and request.user.pk != user:
         raise PermissionError
@@ -66,7 +70,8 @@ def submit_time_off_request(request):
         organization=request.user.userprofile.organization,
         start_date=start_date,
         end_date=end_date,
-        user=User.objects.get(pk=user)
+        user=User.objects.get(pk=user),
+        request_note=note
     )
     # if not admin or manager, request must be for the user him or herself
     try:
