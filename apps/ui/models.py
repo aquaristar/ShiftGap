@@ -29,6 +29,8 @@ class UserProfile(models.Model):
     phone_confirmed = models.BooleanField(default=False)
     role = models.CharField(max_length=3, choices=USER_ROLES, default=USER)
 
+    active = models.BooleanField(default=True)
+
     __original_number = None
 
     def __init__(self, *args, **kwargs):
@@ -59,3 +61,16 @@ class UserProfile(models.Model):
     @property
     def admin_or_manager(self):
         return True if self.role == 'ADM' or self.role == 'MGR' else False
+
+    def deactivate_user(self):
+        """
+        Placeholder for method to deactivate a user. Should handle validation (e.g. disallow disabling user
+        when they are scheduled for upcoming shifts, etc)
+        :return:
+        """
+        self.active = False
+        self.save()
+
+    def reactivate_user(self):
+        self.active = True
+        self.save()

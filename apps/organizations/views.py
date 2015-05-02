@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.http.response import HttpResponseRedirect, Http404
-from django.views.generic import View, FormView, UpdateView, CreateView, ListView
+from django.views.generic import View, UpdateView, CreateView, ListView, TemplateView
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils.translation import ugettext as _
@@ -132,7 +132,7 @@ class UserListView(UserProfileRequiredMixin, ListView):
     template_name = 'organizations/user_list.html'
 
     def get_queryset(self):
-        return User.objects.filter(userprofile__organization=self.request.user.userprofile.organization)
+        return User.objects.filter(userprofile__organization=self.request.user.userprofile.organization, userprofile__active=True)
 
     def post(self, request, *args, **kwargs):
         if self.request.user.userprofile.phone_number:
@@ -143,6 +143,67 @@ class UserListView(UserProfileRequiredMixin, ListView):
         else:
             messages.error(request, _("You need to have a phone number saved to your profile before you can confirm it,"))
             return HttpResponseRedirect(reverse('org:user_list'))
+
+
+class NonActiveUserListView(UserProfileRequiredMixin, ListView):
+    model = User
+    template_name = 'organizations/user_list_non_active.html'
+
+    def get_queryset(self):
+        return User.objects.filter(userprofile__organization=self.request.user.userprofile.organization, userprofile__active=False)
+
+    def post(self, request, *args, **kwargs):
+        if self.request.user.userprofile.phone_number:
+            user_id = request.POST['user_id']
+            send_user_phone_confirmation_code.delay(user_id)
+            messages.success(request, _('You should be receiving a confirmation text shortly!'))
+            return HttpResponseRedirect(reverse('phone:confirm_phone'))
+        else:
+            messages.error(request, _("You need to have a phone number saved to your profile before you can confirm it,"))
+            return HttpResponseRedirect(reverse('org:user_list'))
+
+
+# FIXME: Better permissions implementation this is a quick and dirty fix
+class ManagerOrAdminRoleRequiredMixin(UserProfileRequiredMixin):
+
+    def dispatch(self, request, *args, **kwargs):
+        # make sure there is a UserProfile before we go any further
+        sup = super().dispatch(request, *args, **kwargs)
+        if self.request.user.userprofile.role != 'MGR' and self.request.user.userprofile.role != 'ADM':
+            messages.warning(self.request, _("Manager or admin privileges are required to complete this operation."))
+            return HttpResponseRedirect('/')
+        else:
+            return sup
+
+
+class DeactivateUserView(ManagerOrAdminRoleRequiredMixin, TemplateView):
+    template_name = 'organizations/deactivate_user.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(DeactivateUserView, self).get_context_data(**kwargs)
+        context['deactivate_user'] = User.objects.get(pk=self.kwargs['pk'], userprofile__organization=self.request.user.userprofile.organization)
+        return context
+
+    def post(self, *args, **kwargs):
+        userp = UserProfile.objects.get(user__pk=self.kwargs['pk'], organization=self.request.user.userprofile.organization)
+        userp.deactivate_user()
+        messages.success(self.request, _('User %s has been successfully deactivated.') % userp.user.first_name)
+        return HttpResponseRedirect(reverse('org:user_list'))
+
+
+class ReactivateUserView(ManagerOrAdminRoleRequiredMixin, TemplateView):
+    template_name = 'organizations/reactivate_user.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ReactivateUserView, self).get_context_data(**kwargs)
+        context['reactivate_user'] = User.objects.get(pk=self.kwargs['pk'], userprofile__organization=self.request.user.userprofile.organization)
+        return context
+
+    def post(self, *args, **kwargs):
+        userp = UserProfile.objects.get(user__pk=self.kwargs['pk'], organization=self.request.user.userprofile.organization)
+        userp.reactivate_user()
+        messages.success(self.request, _('User %s has been successfully reactivated.') % userp.user.first_name)
+        return HttpResponseRedirect(reverse('org:user_list'))
 
 
 class UserEditView(UserProfileRequiredMixin, UpdateView):
@@ -179,18 +240,6 @@ class UserEditView(UserProfileRequiredMixin, UpdateView):
             return HttpResponseRedirect(reverse('org:user_list'))
         else:
             return super(UserEditView, self).dispatch(request, *args, **kwargs)
-
-
-# FIXME: Better permissions implementation this is a quick and dirty fix
-class ManagerOrAdminRoleRequiredMixin(UserProfileRequiredMixin):
-
-    def dispatch(self, request, *args, **kwargs):
-        # make sure there is a UserProfile before we go any further
-        sup = super().dispatch(request, *args, **kwargs)
-        if self.request.user.userprofile.role != 'MGR' and self.request.user.userprofile.role != 'ADM':
-            return HttpResponseRedirect('/')
-        else:
-            return sup
 
 
 class UserProfileCreateMixin(object):
