@@ -32,7 +32,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.formtools',
+    # 'django.contrib.formtools',  # removed from core Django in 1.8
     'django.contrib.admindocs',
 
 
