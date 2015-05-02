@@ -67,7 +67,8 @@ class UserSetupWithoutOrganizationForm(forms.ModelForm):
 class UserEditForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30, required=True)
     last_name = forms.CharField(max_length=30, required=True)
+    password = forms.CharField(max_length=30, required=False, widget=forms.PasswordInput())
 
     class Meta:
         model = UserProfile
-        fields = ('first_name', 'last_name', 'phone_number', 'phone_reminders')
+        fields = ('first_name', 'last_name', 'phone_number', 'phone_reminders', 'password')

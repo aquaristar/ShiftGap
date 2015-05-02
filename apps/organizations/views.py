@@ -159,6 +159,8 @@ class UserEditView(UserProfileRequiredMixin, UpdateView):
         user = self.get_object().user
         user.first_name = form.cleaned_data['first_name']
         user.last_name = form.cleaned_data['last_name']
+        if form.cleaned_data['password']:
+            user.set_password(form.cleaned_data['password'])
         user.save()
         return super(UserEditView, self).form_valid(form=form)
 
