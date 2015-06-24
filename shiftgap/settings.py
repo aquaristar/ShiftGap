@@ -102,7 +102,7 @@ if PRODUCTION:
                 'sslrootcert': 'shiftgap/rds-combined-ca-bundle.pem'
             }
         },
-        }
+    }
 else:
     import dj_database_url
     DATABASES = {
@@ -131,34 +131,54 @@ LOCALE_PATHS = (
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    root('static'),
     root('apps/ui/static'),
+    root('static'),
 )
 
 STATIC_ROOT = root('staticfiles')
 
-# Template files
-TEMPLATE_DIRS = (
-    root('templates'),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [root('templates'),
+                 root('apps/ui/templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.tz",
-    "django.core.context_processors.request",  # not included by default but django-allauth needs it
-    "django.contrib.messages.context_processors.messages",
+                # project specific
+                "apps.ui.context_processors.process_ui_views",
 
-    # project specific
-    "apps.ui.context_processors.process_ui_views",
+                # allauth specific context processors
+                "allauth.account.context_processors.account",
+                "allauth.socialaccount.context_processors.socialaccount",
+            ],
+        },
+    },
+]
 
-    # allauth specific context processors
-    "allauth.account.context_processors.account",
-    "allauth.socialaccount.context_processors.socialaccount",
-)
+
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     "django.contrib.auth.context_processors.auth",
+#     "django.core.context_processors.debug",
+#     "django.core.context_processors.i18n",
+#     "django.core.context_processors.media",
+#     "django.core.context_processors.static",
+#     "django.core.context_processors.tz",
+#     "django.core.context_processors.request",  # not included by default but django-allauth needs it
+#     "django.contrib.messages.context_processors.messages",
+#
+#     # project specific
+#     "apps.ui.context_processors.process_ui_views",
+#
+#     # allauth specific context processors
+#     "allauth.account.context_processors.account",
+#     "allauth.socialaccount.context_processors.socialaccount",
+# )
 
 AUTHENTICATION_BACKENDS = (
 
@@ -244,12 +264,12 @@ LOGGING = {
         "console": {
             "level": "INFO",
             "class": "logging.StreamHandler",
-            },
         },
+    },
     "loggers": {
         "django": {
             "handlers": ["console"],
-            }
+        }
     }
 }
 

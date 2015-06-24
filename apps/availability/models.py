@@ -419,7 +419,7 @@ class DayAvailability(models.Model):
     )
 
     availability = models.ForeignKey('availability.Availability')
-    day_of_week = models.PositiveIntegerField(max_length=1, choices=CHOICES)
+    day_of_week = models.PositiveIntegerField(choices=CHOICES)
     start_time = models.TimeField()
     end_time = models.TimeField()
 

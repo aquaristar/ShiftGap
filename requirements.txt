@@ -1,22 +1,22 @@
-Django==1.7.8
-django-debug-toolbar==1.3.0
+Django==1.8.2
+django-debug-toolbar==1.3.2
 django-secure==1.0.1
-psycopg2==2.6
-pytz==2015.2
+psycopg2==2.6.1
+pytz==2015.4
 waitress==0.8.9
-newrelic==2.50.0.39
+newrelic==2.52.0.40
 dj-database-url
-django-allauth==0.19.1
+django-allauth==0.20.0
 django-timezone-field==1.2
 django-braces==1.8.0
 arrow==0.5.4
-djangorestframework==3.0.5
-whitenoise==1.0.6
+djangorestframework==3.1.3
+whitenoise==2.0
 django-twilio==0.8.0
 
 # external
-django-cors-headers==1.0.0
-django-rest-auth==0.3.4
+django-cors-headers==1.1.0
+django-rest-auth==0.4.0
 
 # feature switching
 django-waffle==0.10.1
