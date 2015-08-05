@@ -64,7 +64,7 @@ INSTALLED_APPS = (
     'apps.organizations',
     'apps.shifts',
     'apps.phone',
-    'apps.availability',
+    # 'apps.availability',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -154,8 +154,8 @@ TEMPLATES = [
                 "apps.ui.context_processors.process_ui_views",
 
                 # allauth specific context processors
-                "allauth.account.context_processors.account",
-                "allauth.socialaccount.context_processors.socialaccount",
+                # "allauth.account.context_processors.account",
+                # "allauth.socialaccount.context_processors.socialaccount",
             ],
         },
     },
