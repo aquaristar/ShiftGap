@@ -9,6 +9,7 @@ root = lambda *dirs: join(abspath(BASE_DIR), *dirs)  # project directory
 
 from django.utils.crypto import get_random_string
 SECRET_KEY = environ.get("SECRET_KEY", get_random_string(50, "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"))
+#SECRET_KEY = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if environ.get('DEBUG', 'false').lower() == 'true' else False
@@ -290,3 +291,5 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CORS_ORIGIN_ALLOW_ALL = True if DEBUG else False
 
 TWILIO_DEFAULT_CALLERID = '+15874091230'
+TWILIO_ACCOUNT_SID = 1111111111111
+TWILIO_AUTH_TOKEN  = 'ATXXXXXXXXXXXXXXX'
